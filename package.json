@@ -1,0 +1,13 @@
+{
+  "name": "dynapaz87",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Prototipo frontend estatico de portal inmobiliario.",
+  "scripts": {
+    "start": "serve frontend -l tcp://0.0.0.0:$PORT",
+    "dev": "serve frontend -l 3000"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}

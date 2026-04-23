@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin - DYNApaz 87</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="authPage">
+<main class="authBox docsContent docsDashboard">
+<a class="backLink" href="../index.html">Volver al panel principal</a>
+<p id="roleGuardMessage" class="feedback" hidden></p>
+
+<section class="docsHero">
+<div>
+<p class="docsEyebrow">Panel HTML</p>
+<h1>Administrador</h1>
+<p class="authIntro">Vista rápida del rol con control de usuarios, propiedades y validación general del sistema.</p>
+<div id="sessionSummary" class="roleBadgeRow"></div>
+</div>
+<a class="cta docsHero__cta" href="../index.html">Abrir dashboard</a>
+</section>
+
+<section class="docsQuickGrid">
+<article class="docFeatureCard">
+<h2>Acciones clave</h2>
+<ul>
+<li>Revisar perfiles registrados y detectar datos incompletos.</li>
+<li>Eliminar usuarios junto con sus propiedades asociadas.</li>
+<li>Supervisar publicaciones y validar ubicaciones en el mapa.</li>
+<li>Gestionar inmuebles propios o en revisión.</li>
+</ul>
+</article>
+
+<article class="docFeatureCard">
+<h2>Ruta de trabajo</h2>
+<ol>
+<li>Entrar al dashboard principal.</li>
+<li>Ir al bloque de perfiles para revisar cuentas activas.</li>
+<li>Comprobar propiedades visibles y sus coordenadas.</li>
+<li>Eliminar solo cuando exista una causa confirmada.</li>
+</ol>
+</article>
+
+<article class="docFeatureCard">
+<h2>Controles sensibles</h2>
+<ul>
+<li>La eliminación de usuarios afecta también a sus inmuebles.</li>
+<li>La eliminación de propiedades es inmediata.</li>
+<li>La sesión admin debe usarse solo para tareas de revisión.</li>
+</ul>
+</article>
+</section>
+
+<section class="docFeatureCard docChecklist">
+<h2>Checklist operativo</h2>
+<div class="docsMiniGrid">
+<div class="docsMiniItem">
+<strong>Perfiles</strong>
+<span>Validar correo, CI, teléfono y dirección.</span>
+</div>
+<div class="docsMiniItem">
+<strong>Propiedades</strong>
+<span>Confirmar zona, precio, imágenes y descripción.</span>
+</div>
+<div class="docsMiniItem">
+<strong>Mapa</strong>
+<span>Verificar que la ubicación coincida con la zona publicada.</span>
+</div>
+<div class="docsMiniItem">
+<strong>Auditoría</strong>
+<span>Registrar internamente cualquier baja realizada.</span>
+</div>
+</div>
+</section>
+</main>
+
+<script src="../js/auth.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+	const roleGuardMessage = document.getElementById("roleGuardMessage");
+	const sessionSummary = document.getElementById("sessionSummary");
+
+	try {
+		const user = await requireAuth();
+		if (!user) return;
+
+		if (!tieneRol(user, "admin")) {
+			roleGuardMessage.hidden = false;
+			roleGuardMessage.textContent = "Este panel HTML es exclusivo para administradores. Se redirigirá al dashboard general.";
+			roleGuardMessage.className = "feedback feedback--error";
+			setTimeout(() => {
+				window.location = "../index.html";
+			}, 1600);
+			return;
+		}
+
+		sessionSummary.innerHTML = `
+			<span class="rolePill">${user.nombre} ${user.apellido}</span>
+			<span class="rolePill">${user.correo}</span>
+			<span class="rolePill">Administrador</span>
+		`;
+	} catch (error) {
+		roleGuardMessage.hidden = false;
+		roleGuardMessage.textContent = error.message || "No se pudo validar la sesión.";
+		roleGuardMessage.className = "feedback feedback--error";
+	}
+});
+</script>
+</body>
+</html>

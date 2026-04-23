@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>DYNApaz 87</title>
+
+<link rel="stylesheet" href="./css/style.css">
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="topbar__brand">
+
+<h1 class="brand__title">DYNApaz 87</h1>
+
+<p class="brand__tag">
+Casas en La Paz • Encuentra tu próximo hogar
+</p>
+
+</div>
+
+<div class="topbar__logoWrap">
+<img class="topbar__logo" src="./assets/LOGO.png" alt="Logo de DYNApaz 87">
+</div>
+
+<div id="userSession" class="sessionCard"></div>
+
+<nav class="filters">
+
+<button class="chip is-active" data-filter="todos">
+Todos
+</button>
+
+<button class="chip" data-filter="alto">
+Valor alto
+</button>
+
+<button class="chip" data-filter="medio">
+Valor medio
+</button>
+
+<button class="chip" data-filter="economico">
+Valor económico
+</button>
+
+<button class="chip" data-filter="nuevas">
+Nuevas
+</button>
+
+</nav>
+
+</header>
+
+
+
+<main class="layout">
+
+<section class="leftPanel">
+
+<div class="leftPanel__head">
+
+<div class="leftPanel__toolbar">
+
+<h2 class="panelTitle">
+Propiedades
+</h2>
+
+<button id="toggleListBtn" class="panelToggle" type="button" aria-expanded="true">
+Ocultar lista
+</button>
+
+</div>
+
+<div class="searchBox">
+
+<input
+id="searchInput"
+type="text"
+placeholder="Buscar por zona o título..."
+>
+
+</div>
+
+</div>
+
+<!-- LISTA CASAS -->
+
+<div id="cards" class="cards"></div>
+
+</section>
+
+
+
+<section class="rightPanel">
+
+<div class="mapHeader">
+
+<h2 class="panelTitle">
+Mapa • La Paz
+</h2>
+
+<div class="mapHint">
+Selecciona una casa para enfocarla
+</div>
+
+</div>
+
+<div id="map" class="map"></div>
+
+</section>
+
+</main>
+
+<div id="chatButton" class="chatButton" onclick="abrirChat()">
+Hablar
+</div>
+
+
+
+
+<div id="chatBox" class="chatBox">
+
+<div class="chatHeader">
+
+Chat inmobiliaria
+
+<button onclick="cerrarChat()">✖</button>
+
+</div>
+
+<div id="mensajes" class="mensajes"></div>
+
+<div class="chatInput">
+
+<input
+id="mensaje"
+placeholder="Escribe tu mensaje..."
+>
+
+<button onclick="enviarMensaje()">
+Enviar
+</button>
+
+</div>
+
+</div>
+
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="./js/auth.js"></script>
+<script src="./js/app.js"></script>
+<script src="./js/chat.js"></script>
+
+</body>
+</html>

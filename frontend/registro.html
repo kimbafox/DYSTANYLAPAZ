@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro - DYNASTY 87</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body class="authPage">
+
+<div class="authBox">
+
+<h2>Crear cuenta</h2>
+
+<p class="authIntro">Registra tus datos personales. El rol vendedor también conserva permisos de usuario.</p>
+
+<p id="authFeedback" class="feedback" hidden></p>
+
+<div class="authGrid">
+<input id="nombre" type="text" placeholder="Nombre">
+<input id="apellido" type="text" placeholder="Apellido">
+<input id="ci" type="text" placeholder="CI">
+<input id="telefono" type="tel" placeholder="Teléfono">
+<input id="fechaNacimiento" type="date">
+<input id="correo" type="email" placeholder="Correo Gmail o Hotmail">
+</div>
+
+<textarea id="direccion" placeholder="Dirección"></textarea>
+
+<input id="password" type="password" placeholder="Contraseña">
+
+<div class="roleSelector">
+<label class="roleOption">
+<input id="roleUsuario" type="checkbox" checked>
+<span>Usuario</span>
+</label>
+<label class="roleOption">
+<input id="roleVendedor" type="checkbox">
+<span>Vendedor</span>
+</label>
+</div>
+
+<button onclick="register()">Registrarse</button>
+
+<a href="login.html">Volver al login</a>
+
+</div>
+
+<script src="./js/auth.js"></script>
+
+</body>
+</html>
