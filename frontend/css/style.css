@@ -30,6 +30,15 @@ body::before{
   z-index: -1;
 }
 
+.homePage{
+  background: #eef3eb;
+}
+
+.homePage::before{
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(238,243,235,0.92));
+  backdrop-filter: none;
+}
+
 .topbar{
   padding: 30px;
   background: linear-gradient(90deg, var(--green), var(--greenSoft));
@@ -55,11 +64,71 @@ body::before{
   opacity: 0.9;
 }
 
+.homePage .topbar{
+  position: relative;
+  min-height: 44vh;
+  padding: 48px 30px 110px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  justify-items: center;
+  text-align: center;
+  background: url("../assets/background.jpg") center/cover no-repeat;
+  border-bottom: none;
+  overflow: hidden;
+}
+
+.homePage .topbar::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8,33,19,0.35), rgba(8,33,19,0.55));
+}
+
+.homePage .topbar > *{
+  position: relative;
+  z-index: 1;
+}
+
+.homePage .topbar__brand,
+.homePage .topbar__logoWrap,
+.homePage .sessionCard,
+.homePage .filters{
+  width: min(1120px, 100%);
+}
+
+.homePage .topbar__brand{
+  display: flex;
+  justify-content: center;
+}
+
+.homePage .brand__title{
+  margin: 0;
+  padding: 12px 28px;
+  font-size: clamp(32px, 5vw, 58px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: rgba(10, 34, 20, 0.78);
+  border: 2px solid rgba(255,255,255,0.82);
+}
+
+.homePage .topbar__logoWrap{
+  display: grid;
+  place-items: center;
+}
+
 .topbar__logo{
   width: 140px;
   margin: 15px auto;
   display: block;
   animation: floaty 3s infinite ease-in-out;
+}
+
+.homePage .topbar__logo{
+  width: min(280px, 62vw);
+  margin: 0;
+  filter: drop-shadow(0 18px 40px rgba(0,0,0,0.34));
+  animation: floaty 4.2s infinite ease-in-out;
 }
 
 .sessionCard{
@@ -115,6 +184,18 @@ body::before{
   grid-column: 1 / -1;
 }
 
+.homePage .sessionCard{
+  background: rgba(14, 49, 28, 0.78);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 0;
+  padding: 18px 20px;
+}
+
+.homePage .filters{
+  margin-top: 0;
+  justify-content: center;
+}
+
 .chip{
   background: var(--white);
   border: none;
@@ -148,6 +229,27 @@ body::before{
   grid-template-columns: 88px 1fr;
 }
 
+.homePage .layout{
+  position: relative;
+  gap: 22px;
+  padding: 28px;
+  margin: -68px 24px 24px;
+  height: calc(100vh - 240px);
+}
+
+.homePage .layout::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #17613d 0%, #17613d 37%, #17613d 37%, #1e7f4f 100%);
+  z-index: 0;
+}
+
+.homePage .layout > *{
+  position: relative;
+  z-index: 1;
+}
+
 .leftPanel,
 .rightPanel,
 .portalPanel{
@@ -160,6 +262,61 @@ body::before{
 .leftPanel{
   display: flex;
   flex-direction: column;
+}
+
+.homePage .leftPanel,
+.homePage .rightPanel,
+.homePage .portalPanel,
+.homePage .card,
+.homePage .sessionCard,
+.homePage .chip,
+.homePage .panelToggle,
+.homePage .ghostBtn,
+.homePage .searchBox input,
+.homePage .chatBox,
+.homePage .chatInput input,
+.homePage .chatInput button,
+.homePage .chatButton,
+.homePage .cta,
+.homePage .dangerBtn,
+.homePage .authBox button{
+  border-radius: 0;
+}
+
+.homePage .leftPanel,
+.homePage .rightPanel{
+  background: rgba(255,255,255,0.96);
+  border: 2px solid rgba(17, 67, 40, 0.18);
+}
+
+.homePage .panelTitle{
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.homePage .mapHeader,
+.homePage .leftPanel__head{
+  padding: 20px 20px 0;
+}
+
+.homePage .chip,
+.homePage .panelToggle,
+.homePage .ghostBtn,
+.homePage .cta,
+.homePage .dangerBtn,
+.homePage .chatButton,
+.homePage .chatInput button{
+  font-weight: 800;
+}
+
+.homePage .card{
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.homePage .badge,
+.homePage .iconBtn{
+  border-radius: 0;
 }
 
 .leftPanel__toolbar{
@@ -834,6 +991,22 @@ body::before{
   .docsHero__cta{
     width: 100%;
   }
+
+  .homePage .topbar{
+    min-height: auto;
+    padding: 36px 16px 92px;
+  }
+
+  .homePage .brand__title{
+    width: 100%;
+    padding: 12px 16px;
+    letter-spacing: 0.08em;
+  }
+
+  .homePage .layout{
+    margin: -52px 12px 12px;
+    padding: 16px;
+  }
 }
 
 @keyframes dropIn{
@@ -861,6 +1034,10 @@ body::before{
   }
 
   .portalGrid{
+    grid-template-columns: 1fr;
+  }
+
+  .homePage .topbar{
     grid-template-columns: 1fr;
   }
 }
@@ -910,5 +1087,10 @@ body::before{
   .chatButton{
     right: 12px;
     bottom: 12px;
+  }
+
+  .homePage .layout{
+    margin: -48px 14px 14px;
+    height: auto;
   }
 }
