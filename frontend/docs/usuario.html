@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel Usuario - DYNApaz 87</title>
 <link rel="stylesheet" href="../css/style.css">
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 </head>
 <body class="authPage">
 <main class="authBox docsContent docsDashboard">
@@ -15,7 +19,7 @@
 <div>
 <p class="docsEyebrow">Panel HTML</p>
 <h1>Usuario</h1>
-<p class="authIntro">Vista rápida del rol para explorar propiedades, revisar tu perfil y navegar por el mapa inmobiliario.</p>
+<p class="authIntro">Explora, publica y marca la ubicación de tu inmueble.</p>
 <div id="sessionSummary" class="roleBadgeRow"></div>
 </div>
 <a class="cta docsHero__cta" href="../index.html">Ir al portal</a>
@@ -23,62 +27,19 @@
 
 <section class="docsQuickGrid">
 <article class="docFeatureCard">
-<h2>Qué puedes hacer</h2>
+<h2>Acciones</h2>
 <ul>
-<li>Buscar casas por zona, título, descripción o vendedor.</li>
-<li>Filtrar por valor alto, medio, económico o nuevas.</li>
-<li>Consultar tu perfil y el directorio de usuarios registrados en esta misma página.</li>
-<li>Entrar al catálogo principal para ubicar inmuebles en el mapa y abrir conversación.</li>
+<li>Ver tu perfil y el directorio.</li>
+<li>Publicar una propiedad propia.</li>
+<li>Marcar la ubicación exacta en el mapa.</li>
 </ul>
 </article>
-
-<article class="docFeatureCard">
-<h2>Uso recomendado</h2>
-<ol>
-<li>Revisar tus datos personales y roles activos.</li>
-<li>Consultar el directorio de perfiles registrados.</li>
-<li>Volver al catálogo principal si quieres explorar casas y mapa.</li>
-<li>Usar el chat del portal cuando ya hayas elegido una propiedad.</li>
-</ol>
-</article>
-
-<article class="docFeatureCard">
-<h2>Limitaciones del rol</h2>
-<ul>
-<li>No publica propiedades nuevas.</li>
-<li>No elimina usuarios ni inmuebles.</li>
-<li>No modifica datos de otros perfiles.</li>
-</ul>
-</article>
-</section>
-
-<section class="docFeatureCard docChecklist">
-<h2>Ruta rápida del usuario</h2>
-<div class="docsMiniGrid">
-<div class="docsMiniItem">
-<strong>Perfil</strong>
-<span>Consulta tus datos y roles activos en la sesión.</span>
-</div>
-<div class="docsMiniItem">
-<strong>Directorio</strong>
-<span>Revisa los perfiles registrados disponibles en el prototipo.</span>
-</div>
-<div class="docsMiniItem">
-<strong>Catálogo</strong>
-<span>Vuelve al panel principal para explorar propiedades y mapa.</span>
-</div>
-<div class="docsMiniItem">
-<strong>Chat</strong>
-<span>La conversación con asesor sigue disponible en la página principal.</span>
-</div>
-</div>
 </section>
 
 <section class="portalGrid">
 <article class="portalPanel">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Mi perfil</h2>
-<p class="portalPanel__hint">Datos personales y roles de la sesión activa</p>
 </div>
 <div id="profileContent" class="profileContent"></div>
 </article>
@@ -86,14 +47,30 @@
 <article class="portalPanel">
 <div class="portalPanel__head">
 <h2 id="profilesTitle" class="panelTitle">Perfiles registrados</h2>
-<p id="profilesHint" class="portalPanel__hint">Directorio de usuarios del sistema</p>
+<p id="profilesHint" class="portalPanel__hint">Directorio del sistema</p>
 </div>
 <div id="profilesDirectory" class="profilesDirectory"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Vender propiedad</h2>
+<p class="portalPanel__hint">Completa el formulario y marca el punto en el mapa</p>
+</div>
+<div id="propertyManager" class="propertyManager"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Mapa de venta</h2>
+</div>
+<div id="map" class="map"></div>
 </article>
 </section>
 </main>
 
 <script src="../js/auth.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../js/app.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {

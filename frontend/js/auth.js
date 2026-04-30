@@ -292,8 +292,8 @@ async function getProperties(){
 
 async function createProperty(payload){
 	const currentUser = await getCurrentUser();
-	if (!currentUser || (!tieneRol(currentUser, "admin") && !tieneRol(currentUser, "vendedor"))) {
-		throw new Error("Solo vendedores y administradores pueden publicar propiedades.");
+	if (!currentUser || (!tieneRol(currentUser, "admin") && !tieneRol(currentUser, "vendedor") && !tieneRol(currentUser, "usuario"))) {
+		throw new Error("Solo usuarios, vendedores y administradores pueden publicar propiedades.");
 	}
 
 	const validationError = validatePropertyPayload(payload);

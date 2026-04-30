@@ -731,6 +731,10 @@ body::before{
   max-width: 1040px;
 }
 
+.docsDashboard .portalPanel .map{
+  min-height: 420px;
+}
+
 .docsHero{
   display: flex;
   justify-content: space-between;

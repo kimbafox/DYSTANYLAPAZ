@@ -76,7 +76,7 @@ function badgeText(property){
 }
 
 function canManageProperties(){
-  return tieneRol(state.currentUser, "admin") || tieneRol(state.currentUser, "vendedor");
+  return tieneRol(state.currentUser, "admin") || tieneRol(state.currentUser, "vendedor") || tieneRol(state.currentUser, "usuario");
 }
 
 function canDeleteProperty(property){
@@ -172,15 +172,24 @@ function renderProfiles(){
   const profilesTitle = document.getElementById("profilesTitle");
   const profilesHint = document.getElementById("profilesHint");
 
-  if (!profileContent || !profilesDirectory || !state.currentUser) return;
+  if (!state.currentUser) return;
 
-  profileContent.innerHTML = profileMarkup(state.currentUser);
+  if (profileContent) {
+    profileContent.innerHTML = profileMarkup(state.currentUser);
+  }
 
   const isAdmin = tieneRol(state.currentUser, "admin");
-  profilesTitle.textContent = isAdmin ? "Panel de administración" : "Perfiles registrados";
-  profilesHint.textContent = isAdmin
-    ? "El administrador puede revisar perfiles y eliminar cuentas."
-    : "Listado de perfiles con datos personales registrados.";
+  if (profilesTitle) {
+    profilesTitle.textContent = isAdmin ? "Cuentas registradas" : "Perfiles registrados";
+  }
+
+  if (profilesHint) {
+    profilesHint.textContent = isAdmin
+      ? "Revisa cuentas y elimina solo cuando sea necesario."
+      : "Directorio visible del sistema.";
+  }
+
+  if (!profilesDirectory) return;
 
   profilesDirectory.innerHTML = state.users
     .map((user) => profileMarkup(user, { canDelete: isAdmin && user.id !== state.currentUser.id }))
@@ -218,8 +227,8 @@ function renderPropertyManager(){
     <div class="propertyManager__intro">
       <p class="portalPanel__hint">
         ${canManageProperties()
-          ? "Publica inmuebles en el prototipo y administra las propiedades que te pertenecen."
-          : "Solo vendedores y administradores pueden publicar propiedades."}
+          ? "Publica y administra las propiedades de tu cuenta."
+          : "Tu cuenta solo puede ver propiedades."}
       </p>
     </div>
 
@@ -251,11 +260,11 @@ function renderPropertyManager(){
         <button type="submit">Publicar propiedad</button>
       </form>
     ` : `
-      <div class="emptyState">Tu cuenta puede ver propiedades y perfiles, pero no publicar inmuebles.</div>
+      <div class="emptyState">Tu cuenta solo puede revisar propiedades visibles.</div>
     `}
 
     <div class="managedProperties">
-      <h3 class="subTitle">${canManageProperties() ? "Mis propiedades administrables" : "Propiedades visibles"}</h3>
+      <h3 class="subTitle">${canManageProperties() ? "Mis propiedades" : "Propiedades visibles"}</h3>
       ${listedProperties.length
         ? listedProperties.map((property) => `
           <article class="profileCard">

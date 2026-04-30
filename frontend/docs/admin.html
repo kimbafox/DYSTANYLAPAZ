@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel Admin - DYNApaz 87</title>
 <link rel="stylesheet" href="../css/style.css">
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 </head>
 <body class="authPage">
 <main class="authBox docsContent docsDashboard">
@@ -15,7 +19,7 @@
 <div>
 <p class="docsEyebrow">Panel HTML</p>
 <h1>Administrador</h1>
-<p class="authIntro">Vista rápida del rol con control de usuarios, propiedades y validación general del sistema.</p>
+<p class="authIntro">Control de cuentas, publicaciones y mapa.</p>
 <div id="sessionSummary" class="roleBadgeRow"></div>
 </div>
 <a class="cta docsHero__cta" href="../index.html">Abrir dashboard</a>
@@ -23,59 +27,50 @@
 
 <section class="docsQuickGrid">
 <article class="docFeatureCard">
-<h2>Acciones clave</h2>
+<h2>Acciones</h2>
 <ul>
-<li>Revisar perfiles registrados y detectar datos incompletos.</li>
-<li>Eliminar usuarios junto con sus propiedades asociadas.</li>
-<li>Supervisar publicaciones y validar ubicaciones en el mapa.</li>
-<li>Gestionar inmuebles propios o en revisión.</li>
-</ul>
-</article>
-
-<article class="docFeatureCard">
-<h2>Ruta de trabajo</h2>
-<ol>
-<li>Entrar al dashboard principal.</li>
-<li>Ir al bloque de perfiles para revisar cuentas activas.</li>
-<li>Comprobar propiedades visibles y sus coordenadas.</li>
-<li>Eliminar solo cuando exista una causa confirmada.</li>
-</ol>
-</article>
-
-<article class="docFeatureCard">
-<h2>Controles sensibles</h2>
-<ul>
-<li>La eliminación de usuarios afecta también a sus inmuebles.</li>
-<li>La eliminación de propiedades es inmediata.</li>
-<li>La sesión admin debe usarse solo para tareas de revisión.</li>
+<li>Revisar perfiles y propiedades.</li>
+<li>Eliminar cuentas cuando corresponda.</li>
+<li>Validar ubicaciones en el mapa.</li>
 </ul>
 </article>
 </section>
 
-<section class="docFeatureCard docChecklist">
-<h2>Checklist operativo</h2>
-<div class="docsMiniGrid">
-<div class="docsMiniItem">
-<strong>Perfiles</strong>
-<span>Validar correo, CI, teléfono y dirección.</span>
+<section class="portalGrid">
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Mi perfil</h2>
 </div>
-<div class="docsMiniItem">
-<strong>Propiedades</strong>
-<span>Confirmar zona, precio, imágenes y descripción.</span>
+<div id="profileContent" class="profileContent"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 id="profilesTitle" class="panelTitle">Cuentas registradas</h2>
+<p id="profilesHint" class="portalPanel__hint">Revisión rápida del sistema</p>
 </div>
-<div class="docsMiniItem">
-<strong>Mapa</strong>
-<span>Verificar que la ubicación coincida con la zona publicada.</span>
+<div id="profilesDirectory" class="profilesDirectory"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Propiedades</h2>
 </div>
-<div class="docsMiniItem">
-<strong>Auditoría</strong>
-<span>Registrar internamente cualquier baja realizada.</span>
+<div id="propertyManager" class="propertyManager"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Mapa</h2>
 </div>
-</div>
+<div id="map" class="map"></div>
+</article>
 </section>
 </main>
 
 <script src="../js/auth.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../js/app.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 	const roleGuardMessage = document.getElementById("roleGuardMessage");
