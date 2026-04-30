@@ -7,6 +7,7 @@ const state = {
   currentUser: null,
   users: [],
   properties: [],
+  notifications: [],
   isPickingLocation: false,
   draftMarker: null,
 };
@@ -83,6 +84,19 @@ function canDeleteProperty(property){
   return tieneRol(state.currentUser, "admin") || property.ownerId === state.currentUser?.id;
 }
 
+function canExpressInterest(property){
+  return Boolean(state.currentUser && property.ownerId !== state.currentUser.id);
+}
+
+function formatDateTime(value){
+  if (!value) return "Sin fecha";
+
+  return new Intl.DateTimeFormat("es-BO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 function profileMarkup(user, options = {}){
   return `
     <article class="profileCard">
@@ -110,16 +124,54 @@ function renderSessionSummary(){
   const container = document.getElementById("userSession");
   if (!container || !state.currentUser) return;
 
+  const interestCount = state.notifications.length;
+
   container.innerHTML = `
     <p class="sessionCard__name">${escapeHtml(state.currentUser.nombre)} ${escapeHtml(state.currentUser.apellido)}</p>
     <p class="sessionCard__mail">${escapeHtml(state.currentUser.correo)}</p>
-    <div class="profileRoles">${rolePills(state.currentUser.roles)}</div>
+    <div class="profileRoles">
+      ${rolePills(state.currentUser.roles)}
+      <span class="rolePill rolePill--accent">${interestCount} interesados</span>
+    </div>
     <div class="sessionCard__actions">
       <button class="ghostBtn" onclick="window.location.href='./docs/usuario.html'">Ver mi perfil</button>
-      <button class="ghostBtn" onclick="window.location.href='./docs/index.html'">Ver paneles</button>
       <button class="ghostBtn" onclick="logout()">Cerrar sesión</button>
     </div>
   `;
+}
+
+function renderNotifications(){
+  const container = document.getElementById("notificationsInbox");
+  const counter = document.getElementById("notificationsCount");
+  if (counter) {
+    counter.textContent = String(state.notifications.length);
+  }
+
+  if (!container) return;
+
+  if (!state.notifications.length) {
+    container.innerHTML = '<div class="emptyState">Todavía no tienes interesados registrados.</div>';
+    return;
+  }
+
+  container.innerHTML = state.notifications.map((notification) => `
+    <article class="notificationCard">
+      <div class="notificationCard__top">
+        <div>
+          <h3 class="notificationCard__title">${escapeHtml(notification.interestedName)}</h3>
+          <p class="notificationCard__meta">Interesado en ${escapeHtml(notification.propertyTitle)}</p>
+        </div>
+        <span class="rolePill rolePill--accent">${formatDateTime(notification.updatedAt || notification.createdAt)}</span>
+      </div>
+      <div class="notificationCard__grid">
+        <div class="profileLine"><strong>Correo</strong>${escapeHtml(notification.interestedEmail)}</div>
+        <div class="profileLine"><strong>Teléfono</strong>${escapeHtml(notification.interestedPhone)}</div>
+        <div class="profileLine"><strong>CI</strong>${escapeHtml(notification.interestedCi)}</div>
+        <div class="profileLine"><strong>Dirección</strong>${escapeHtml(notification.interestedAddress)}</div>
+      </div>
+      <p class="notificationCard__meta">Propiedad: ${escapeHtml(notification.propertyTitle)} · ${escapeHtml(notification.propertyZone)}</p>
+    </article>
+  `).join("");
 }
 
 function setCatalogCollapsed(collapsed){
@@ -545,7 +597,10 @@ function renderCards(){
         <div class="card__description">${escapeHtml(property.desc)}</div>
         <div class="priceRow">
           <div class="price">${moneyBOB(property.priceBOB)}</div>
-          <button class="cta" data-action="focus">Ver en mapa</button>
+          <div class="cardActions">
+            <button class="ghostAction" data-action="focus">Ver en mapa</button>
+            ${canExpressInterest(property) ? '<button class="cta" data-action="interest">Me interesa</button>' : ""}
+          </div>
         </div>
         ${canDeleteProperty(property) ? `<div class="sessionCard__actions"><button class="dangerBtn" data-action="delete">Eliminar</button></div>` : ""}
       </div>
@@ -577,6 +632,23 @@ function renderCards(){
       event.stopPropagation();
       focusOnProperty(property.id);
     });
+
+    const interestBtn = card.querySelector('[data-action="interest"]');
+    if (interestBtn) {
+      interestBtn.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        interestBtn.disabled = true;
+
+        try {
+          await registerInterest(property.id);
+          alert(`Tu interés fue enviado al propietario de ${property.title}.`);
+        } catch (error) {
+          alert(error.message || "No se pudo registrar tu interés.");
+        } finally {
+          interestBtn.disabled = false;
+        }
+      });
+    }
 
     const deleteBtn = card.querySelector('[data-action="delete"]');
     if (deleteBtn) {
@@ -666,12 +738,15 @@ async function loadProperties(){
 }
 
 async function loadDashboardData(){
-  const [users, properties] = await Promise.all([getUsers(), getProperties()]);
+  const [users, properties, notifications] = await Promise.all([getUsers(), getProperties(), getInterests()]);
   state.users = users;
   state.properties = properties;
+  state.notifications = notifications;
   syncMarkers();
+  renderSessionSummary();
   renderProfiles();
   renderPropertyManager();
+  renderNotifications();
   renderCards();
 }
 

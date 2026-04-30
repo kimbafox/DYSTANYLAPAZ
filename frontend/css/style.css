@@ -495,6 +495,12 @@ body::before{
   gap: 12px;
 }
 
+.cardActions{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .price{
   font-size: 18px;
   font-weight: 900;
@@ -533,10 +539,53 @@ body::before{
   padding: 0 15px 20px;
 }
 
+.portalPanel{
+  border: var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241,247,242,0.96));
+}
+
 .profileContent,
 .profilesDirectory,
 .propertyManager{
   padding: 20px;
+}
+
+.notificationCard{
+  border: var(--stroke);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(244,249,245,0.96));
+  box-shadow: 0 10px 24px rgba(14, 52, 31, 0.08);
+}
+
+.notificationCard + .notificationCard{
+  margin-top: 14px;
+}
+
+.notificationCard__top{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.notificationCard__title{
+  margin: 0;
+  font-size: 18px;
+}
+
+.notificationCard__meta{
+  margin: 0;
+  color: rgba(0,0,0,0.66);
+  font-size: 14px;
+}
+
+.notificationCard__grid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin-bottom: 12px;
 }
 
 .profileCard{
@@ -731,6 +780,13 @@ body::before{
   max-width: 1040px;
 }
 
+.docsDashboard{
+  width: min(1180px, calc(100% - 32px));
+  padding: 32px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(240,246,241,0.95));
+  border: 1px solid rgba(16, 72, 42, 0.08);
+}
+
 .docsDashboard .portalPanel .map{
   min-height: 420px;
 }
@@ -740,8 +796,11 @@ body::before{
   justify-content: space-between;
   align-items: flex-start;
   gap: 18px;
-  padding-bottom: 14px;
-  border-bottom: var(--stroke);
+  padding: 18px 20px;
+  border: var(--stroke);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(25, 84, 50, 0.95), rgba(42, 126, 78, 0.88));
+  color: white;
 }
 
 .docsHero__cta{
@@ -751,6 +810,7 @@ body::before{
   align-items: center;
   justify-content: center;
   min-width: 180px;
+  background: var(--yellow);
 }
 
 .docsEyebrow{
@@ -758,7 +818,7 @@ body::before{
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 12px;
-  color: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.72);
   font-weight: 800;
 }
 
@@ -788,6 +848,7 @@ body::before{
 
 .docFeatureCard{
   padding: 18px;
+  box-shadow: 0 10px 26px rgba(13, 51, 29, 0.07);
 }
 
 .docFeatureCard h2{
@@ -824,6 +885,11 @@ body::before{
   border: var(--stroke);
 }
 
+.rolePill--accent{
+  background: rgba(255,216,77,0.22);
+  color: #6a4b00;
+}
+
 .map--picking{
   outline: 3px solid rgba(255,216,77,0.9);
   outline-offset: -3px;
@@ -839,6 +905,9 @@ body::before{
   display: grid;
   place-items: center;
   padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(47,170,106,0.18), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(255,216,77,0.18), transparent 26%);
 }
 
 .authBox{
@@ -1011,6 +1080,11 @@ body::before{
     margin: -52px 12px 12px;
     padding: 16px;
   }
+
+  .notificationCard__grid,
+  .cardActions{
+    grid-template-columns: 1fr;
+  }
 }
 
 @keyframes dropIn{
@@ -1076,7 +1150,8 @@ body::before{
   }
 
   .profileGrid,
-  .authGrid{
+  .authGrid,
+  .notificationCard__grid{
     grid-template-columns: 1fr;
   }
 

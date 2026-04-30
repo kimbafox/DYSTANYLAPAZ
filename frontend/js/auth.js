@@ -1,6 +1,7 @@
 const SESSION_TOKEN_KEY = "dynapaz_session_token";
 const USERS_STORAGE_KEY = "dynapaz_users";
 const PROPERTIES_STORAGE_KEY = "dynapaz_properties";
+const INTERESTS_STORAGE_KEY = "dynapaz_interests";
 
 const DEMO_USERS = [
 	{
@@ -85,6 +86,8 @@ const DEMO_PROPERTIES = [
 
 let currentUserCache = null;
 
+const DEMO_INTERESTS = [];
+
 function clone(value){
 	return JSON.parse(JSON.stringify(value));
 }
@@ -96,6 +99,10 @@ function initPrototypeStorage(){
 
 	if (!localStorage.getItem(PROPERTIES_STORAGE_KEY)) {
 		localStorage.setItem(PROPERTIES_STORAGE_KEY, JSON.stringify(DEMO_PROPERTIES));
+	}
+
+	if (!localStorage.getItem(INTERESTS_STORAGE_KEY)) {
+		localStorage.setItem(INTERESTS_STORAGE_KEY, JSON.stringify(DEMO_INTERESTS));
 	}
 }
 
@@ -128,6 +135,14 @@ function savePropertiesDb(properties){
 	writeStorage(PROPERTIES_STORAGE_KEY, properties);
 }
 
+function getInterestsDb(){
+	return readStorage(INTERESTS_STORAGE_KEY, DEMO_INTERESTS);
+}
+
+function saveInterestsDb(interests){
+	writeStorage(INTERESTS_STORAGE_KEY, interests);
+}
+
 function publicUser(user){
 	if (!user) return null;
 	const { password, ...rest } = user;
@@ -143,6 +158,25 @@ function enrichProperty(property, users){
 	return {
 		...clone(property),
 		ownerName: owner ? `${owner.nombre} ${owner.apellido}` : "Sin asignar",
+	};
+}
+
+function enrichInterest(interest, users, properties){
+	const interestedUser = users.find((user) => user.id === interest.interestedUserId);
+	const property = properties.find((item) => item.id === interest.propertyId);
+	const owner = property ? users.find((user) => user.id === property.ownerId) : null;
+
+	return {
+		...clone(interest),
+		propertyTitle: property?.title || "Propiedad eliminada",
+		propertyZone: property?.zone || "Sin zona",
+		ownerId: property?.ownerId || interest.ownerId,
+		ownerName: owner ? `${owner.nombre} ${owner.apellido}` : "Sin propietario",
+		interestedName: interestedUser ? `${interestedUser.nombre} ${interestedUser.apellido}` : "Usuario eliminado",
+		interestedEmail: interestedUser?.correo || "",
+		interestedPhone: interestedUser?.telefono || "",
+		interestedCi: interestedUser?.ci || "",
+		interestedAddress: interestedUser?.direccion || "",
 	};
 }
 
@@ -290,6 +324,58 @@ async function getProperties(){
 	return getPropertiesDb().map((property) => enrichProperty(property, users));
 }
 
+async function getInterests(){
+	const currentUser = await getCurrentUser();
+	if (!currentUser) return [];
+
+	const users = getUsersDb();
+	const properties = getPropertiesDb();
+	return getInterestsDb()
+		.filter((interest) => interest.ownerId === currentUser.id)
+		.map((interest) => enrichInterest(interest, users, properties))
+		.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+}
+
+async function registerInterest(propertyId){
+	const currentUser = await getCurrentUser();
+	if (!currentUser) {
+		throw new Error("Debes iniciar sesion para registrar tu interes.");
+	}
+
+	const properties = getPropertiesDb();
+	const property = properties.find((item) => item.id === propertyId);
+	if (!property) {
+		throw new Error("La propiedad seleccionada ya no esta disponible.");
+	}
+
+	if (property.ownerId === currentUser.id) {
+		throw new Error("No puedes registrarte como interesado en tu propia propiedad.");
+	}
+
+	const interests = getInterestsDb();
+	const now = new Date().toISOString();
+	const existingInterest = interests.find((interest) => interest.propertyId === propertyId && interest.interestedUserId === currentUser.id);
+
+	if (existingInterest) {
+		existingInterest.updatedAt = now;
+		saveInterestsDb(interests);
+		return existingInterest;
+	}
+
+	const interest = {
+		id: createId("interest"),
+		propertyId,
+		ownerId: property.ownerId,
+		interestedUserId: currentUser.id,
+		createdAt: now,
+		updatedAt: now,
+	};
+
+	interests.unshift(interest);
+	saveInterestsDb(interests);
+	return interest;
+}
+
 async function createProperty(payload){
 	const currentUser = await getCurrentUser();
 	if (!currentUser || (!tieneRol(currentUser, "admin") && !tieneRol(currentUser, "vendedor") && !tieneRol(currentUser, "usuario"))) {
@@ -335,6 +421,7 @@ async function deleteProperty(propertyId){
 	}
 
 	savePropertiesDb(properties.filter((item) => item.id !== propertyId));
+	saveInterestsDb(getInterestsDb().filter((interest) => interest.propertyId !== propertyId));
 	return true;
 }
 
@@ -433,6 +520,7 @@ async function eliminarUsuario(userId){
 
 	saveUsersDb(users.filter((user) => user.id !== userId));
 	savePropertiesDb(getPropertiesDb().filter((property) => property.ownerId !== userId));
+	saveInterestsDb(getInterestsDb().filter((interest) => interest.ownerId !== userId && interest.interestedUserId !== userId));
 	return true;
 }
 
@@ -475,6 +563,8 @@ window.requireAuth = requireAuth;
 window.getProperties = getProperties;
 window.createProperty = createProperty;
 window.deleteProperty = deleteProperty;
+window.getInterests = getInterests;
+window.registerInterest = registerInterest;
 
 document.addEventListener("DOMContentLoaded", async () => {
 	const pathname = window.location.pathname || "";
