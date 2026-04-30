@@ -14,6 +14,12 @@ const state = {
 const INDEX_LAYOUT_STORAGE_KEY = "dynapaz_index_layout";
 
 const FALLBACK_PROPERTY_IMAGE = "./assets/houses/casa1_1.jpg";
+const LA_PAZ_BOUNDS = [
+  [-16.6505, -68.255],
+  [-16.426, -68.011],
+];
+const LA_PAZ_CENTER = [-16.4957, -68.1336];
+const LA_PAZ_DEFAULT_ZOOM = 12;
 
 function escapeHtml(value){
   return String(value ?? "")
@@ -616,7 +622,16 @@ function initMap(){
   const mapElement = document.getElementById("map");
   if (!mapElement || typeof L === "undefined") return;
 
-  state.map = L.map("map", { zoomControl: true }).setView([-16.5, -68.15], 12);
+  const laPazBounds = L.latLngBounds(LA_PAZ_BOUNDS);
+
+  state.map = L.map("map", {
+    zoomControl: true,
+    maxBounds: laPazBounds,
+    maxBoundsViscosity: 1,
+    minZoom: 11,
+  }).setView(LA_PAZ_CENTER, LA_PAZ_DEFAULT_ZOOM);
+
+  state.map.fitBounds(laPazBounds);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -625,6 +640,11 @@ function initMap(){
 
   state.map.on("click", (event) => {
     if (!state.isPickingLocation) return;
+
+    if (!laPazBounds.contains(event.latlng)) {
+      updateLocationPickerStatus("Solo puedes fijar ubicaciones dentro de La Paz, Bolivia.", "error");
+      return;
+    }
 
     const coords = [event.latlng.lat, event.latlng.lng];
     setDraftLocation(coords);
