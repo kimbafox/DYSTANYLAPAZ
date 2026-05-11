@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paneles y Documentación - DYNApaz 87</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="authPage">
+<main class="authBox docsContent docsDashboard">
+<a class="backLink" href="../index.html">Volver al catálogo principal</a>
+<p id="roleGuardMessage" class="feedback" hidden></p>
+
+<section class="docsHero">
+<div>
+<p class="docsEyebrow">Centro de paneles</p>
+<h1>Documentación y accesos</h1>
+<p class="authIntro">Esta página reúne los paneles HTML del prototipo para usuario, vendedor y administrador.</p>
+<div id="sessionSummary" class="roleBadgeRow"></div>
+</div>
+<a class="cta docsHero__cta" href="../index.html">Ir al catálogo</a>
+</section>
+
+<section class="docsQuickGrid">
+<article class="docFeatureCard">
+<h2>Panel Admin</h2>
+<p class="portalPanel__hint">Control operativo de usuarios, propiedades y revisión global.</p>
+<a class="backLink" href="./admin.html">Abrir panel admin</a>
+</article>
+
+<article class="docFeatureCard">
+<h2>Panel Usuario</h2>
+<p class="portalPanel__hint">Perfil personal y directorio de usuarios registrados.</p>
+<a class="backLink" href="./usuario.html">Abrir panel usuario</a>
+</article>
+
+<article class="docFeatureCard">
+<h2>Panel Vendedor</h2>
+<p class="portalPanel__hint">Publicación, mapa de ubicación y gestión de propiedades.</p>
+<a class="backLink" href="./vendedor.html">Abrir panel vendedor</a>
+</article>
+
+<article class="docFeatureCard">
+<h2>Arquitectura</h2>
+<p class="portalPanel__hint">Referencia del backend original y su estructura modular.</p>
+<a class="backLink" href="./backend.html">Abrir referencia técnica</a>
+</article>
+</section>
+</main>
+
+<script src="../js/auth.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+	const roleGuardMessage = document.getElementById("roleGuardMessage");
+	const sessionSummary = document.getElementById("sessionSummary");
+
+	try {
+		const user = await requireAuth();
+		if (!user) return;
+
+		sessionSummary.innerHTML = `
+			<span class="rolePill">${user.nombre} ${user.apellido}</span>
+			<span class="rolePill">${user.correo}</span>
+			<span class="rolePill">${(user.roles || []).map((role) => role === "admin" ? "Administrador" : role === "vendedor" ? "Vendedor" : "Usuario").join(" / ")}</span>
+		`;
+	} catch (error) {
+		roleGuardMessage.hidden = false;
+		roleGuardMessage.textContent = error.message || "No se pudo validar la sesión.";
+		roleGuardMessage.className = "feedback feedback--error";
+	}
+});
+</script>
+</body>
+</html>

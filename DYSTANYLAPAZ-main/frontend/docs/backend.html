@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitectura Backend - DYNApaz 87</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="authPage">
+<main class="authBox docsContent">
+<a class="backLink" href="../index.html">Volver al panel</a>
+<h1>Arquitectura del Backend</h1>
+<p class="authIntro">El servidor fue reorganizado en módulos para separar responsabilidades.</p>
+
+<section>
+<h2>Estructura</h2>
+<ul>
+<li>server/src/app.js: composición principal de Express.</li>
+<li>server/src/routes: rutas por dominio.</li>
+<li>server/src/middleware: autenticación y CORS.</li>
+<li>server/src/services: lógica de sesiones y propiedades.</li>
+<li>server/src/data/store.js: persistencia en data/db.json.</li>
+<li>server/src/utils: validaciones, seguridad y seed inicial.</li>
+</ul>
+</section>
+
+<section>
+<h2>Persistencia</h2>
+<p>La base actual es un archivo JSON local. Es adecuada para desarrollo, demo y pruebas funcionales. Para producción el siguiente paso natural es migrar a PostgreSQL o MySQL.</p>
+</section>
+
+<section>
+<h2>API disponible</h2>
+<ul>
+<li>POST /api/auth/register</li>
+<li>POST /api/auth/login</li>
+<li>GET /api/auth/me</li>
+<li>POST /api/auth/logout</li>
+<li>GET /api/users</li>
+<li>DELETE /api/users/:id</li>
+<li>GET /api/properties</li>
+<li>POST /api/properties</li>
+<li>DELETE /api/properties/:id</li>
+</ul>
+</section>
+</main>
+</body>
+</html>

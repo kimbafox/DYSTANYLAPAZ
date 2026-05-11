@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Usuario - DYNApaz 87</title>
+<link rel="stylesheet" href="../css/style.css">
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+</head>
+<body class="authPage">
+<main class="authBox docsContent docsDashboard">
+<a class="backLink" href="../index.html">Volver al panel principal</a>
+<p id="roleGuardMessage" class="feedback" hidden></p>
+
+<section class="docsHero">
+<div>
+<p class="docsEyebrow">Panel HTML</p>
+<h1>Usuario</h1>
+<p class="authIntro">Explora, publica y marca la ubicación de tu inmueble.</p>
+<div id="sessionSummary" class="roleBadgeRow"></div>
+</div>
+<a class="cta docsHero__cta" href="../index.html">Ir al portal</a>
+</section>
+
+<section class="docsQuickGrid">
+<article class="docFeatureCard">
+<h2>Acciones</h2>
+<ul>
+<li>Ver tu perfil y el directorio.</li>
+<li>Publicar una propiedad propia.</li>
+<li>Marcar la ubicación exacta en el mapa.</li>
+</ul>
+</article>
+</section>
+
+<section class="portalGrid">
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Mi perfil</h2>
+</div>
+<div id="profileContent" class="profileContent"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 id="profilesTitle" class="panelTitle">Perfiles registrados</h2>
+<p id="profilesHint" class="portalPanel__hint">Directorio del sistema</p>
+</div>
+<div id="profilesDirectory" class="profilesDirectory"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Vender propiedad</h2>
+<p class="portalPanel__hint">Completa el formulario y marca el punto en el mapa</p>
+</div>
+<div id="propertyManager" class="propertyManager"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Bandeja de interesados</h2>
+<p class="portalPanel__hint">Consulta quién quiere contactarte</p>
+</div>
+<div id="notificationsInbox" class="profilesDirectory"></div>
+</article>
+
+<article class="portalPanel">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Mapa de venta</h2>
+</div>
+<div id="map" class="map"></div>
+</article>
+</section>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../js/app.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+	const roleGuardMessage = document.getElementById("roleGuardMessage");
+	const sessionSummary = document.getElementById("sessionSummary");
+
+	try {
+		const user = await requireAuth();
+		if (!user) return;
+
+		sessionSummary.innerHTML = `
+			<span class="rolePill">${user.nombre} ${user.apellido}</span>
+			<span class="rolePill">${user.correo}</span>
+			<span class="rolePill">${(user.roles || []).map((role) => role === "admin" ? "Administrador" : role === "vendedor" ? "Vendedor" : "Usuario").join(" / ")}</span>
+		`;
+
+		if (!tieneRol(user, "usuario") && !tieneRol(user, "vendedor") && !tieneRol(user, "admin")) {
+			roleGuardMessage.hidden = false;
+			roleGuardMessage.textContent = "Tu sesión no tiene permisos para cargar este panel HTML.";
+			roleGuardMessage.className = "feedback feedback--error";
+		}
+	} catch (error) {
+		roleGuardMessage.hidden = false;
+		roleGuardMessage.textContent = error.message || "No se pudo validar la sesión.";
+		roleGuardMessage.className = "feedback feedback--error";
+	}
+});
+</script>
+</body>
+</html>
