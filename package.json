@@ -9,6 +9,7 @@
     "serve:frontend": "serve frontend -l 3000"
   },
   "dependencies": {
+    "express": "^4.21.2",
     "pg": "^8.13.1",
     "serve": "^14.2.4"
   }
