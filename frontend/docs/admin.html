@@ -11,65 +11,68 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
 </head>
 <body class="authPage">
-<main class="authBox docsContent docsDashboard">
+<main class="docsDashboard docsDashboard--workspace">
+<aside class="workspaceSidebar">
 <a class="backLink" href="../index.html">Volver al panel principal</a>
-<p id="roleGuardMessage" class="feedback" hidden></p>
 
-<section class="docsHero">
-<div>
+<div class="workspaceSidebar__hero">
 <p class="docsEyebrow">Panel HTML</p>
 <h1>Administrador</h1>
-<p class="authIntro">Control de cuentas, publicaciones y mapa.</p>
+<p class="authIntro">Gestiona cuentas, propiedades y seguimiento comercial desde una sola navegación lateral.</p>
 <div id="sessionSummary" class="roleBadgeRow"></div>
 </div>
+
+<nav class="workspaceNav" aria-label="Secciones del panel administrador">
+<button class="workspaceNav__item is-active" type="button" data-section-target="perfil">Mi perfil</button>
+<button class="workspaceNav__item" type="button" data-section-target="cuentas">Cuentas</button>
+<button class="workspaceNav__item" type="button" data-section-target="propiedades">Propiedades</button>
+<button class="workspaceNav__item" type="button" data-section-target="interesados">Interesados</button>
+<button class="workspaceNav__item" type="button" data-section-target="mapa">Mapa</button>
+</nav>
+
+<div class="workspaceSidebar__footer">
 <a class="cta docsHero__cta" href="../index.html">Abrir dashboard</a>
-</section>
+<p id="roleGuardMessage" class="feedback" hidden></p>
+</div>
+</aside>
 
-<section class="docsQuickGrid">
-<article class="docFeatureCard">
-<h2>Acciones</h2>
-<ul>
-<li>Revisar perfiles y propiedades.</li>
-<li>Eliminar cuentas cuando corresponda.</li>
-<li>Validar ubicaciones en el mapa.</li>
-</ul>
-</article>
-</section>
-
-<section class="portalGrid">
-<article class="portalPanel">
+<section class="workspaceContent">
+<article class="portalPanel dashboardSection is-active" data-section-panel="perfil">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Mi perfil</h2>
+<p class="portalPanel__hint">Resumen de la cuenta administradora activa.</p>
 </div>
 <div id="profileContent" class="profileContent"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection" data-section-panel="cuentas">
 <div class="portalPanel__head">
 <h2 id="profilesTitle" class="panelTitle">Cuentas registradas</h2>
-<p id="profilesHint" class="portalPanel__hint">Revisión rápida del sistema</p>
+<p id="profilesHint" class="portalPanel__hint">Revisión rápida del sistema.</p>
 </div>
 <div id="profilesDirectory" class="profilesDirectory"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection" data-section-panel="propiedades">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Propiedades</h2>
+<p class="portalPanel__hint">Consulta publicaciones y control de propiedades visibles.</p>
 </div>
 <div id="propertyManager" class="propertyManager"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection" data-section-panel="interesados">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Bandeja de interesados</h2>
-<p class="portalPanel__hint">Personas interesadas en tus publicaciones</p>
+<p class="portalPanel__hint">Personas interesadas en las publicaciones del sistema.</p>
 </div>
 <div id="notificationsInbox" class="profilesDirectory"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection dashboardSection--map" data-section-panel="mapa">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Mapa</h2>
+<p class="portalPanel__hint">Valida ubicaciones y visualiza propiedades en el mapa.</p>
 </div>
 <div id="map" class="map"></div>
 </article>
@@ -83,6 +86,32 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 document.addEventListener("DOMContentLoaded", async () => {
 	const roleGuardMessage = document.getElementById("roleGuardMessage");
 	const sessionSummary = document.getElementById("sessionSummary");
+	const navButtons = [...document.querySelectorAll("[data-section-target]")];
+	const panels = [...document.querySelectorAll("[data-section-panel]")];
+
+	const activateSection = (sectionName) => {
+		navButtons.forEach((button) => {
+			button.classList.toggle("is-active", button.getAttribute("data-section-target") === sectionName);
+		});
+
+		panels.forEach((panel) => {
+			panel.classList.toggle("is-active", panel.getAttribute("data-section-panel") === sectionName);
+		});
+
+		if (sectionName === "mapa") {
+			window.setTimeout(() => {
+				if (window.__dynapazMap) {
+					window.__dynapazMap.invalidateSize();
+				}
+			}, 180);
+		}
+	};
+
+	navButtons.forEach((button) => {
+		button.addEventListener("click", () => {
+			activateSection(button.getAttribute("data-section-target"));
+		});
+	});
 
 	try {
 		const user = await requireAuth();
@@ -103,6 +132,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 			<span class="rolePill">${user.correo}</span>
 			<span class="rolePill">Administrador</span>
 		`;
+
+		activateSection("perfil");
 	} catch (error) {
 		roleGuardMessage.hidden = false;
 		roleGuardMessage.textContent = error.message || "No se pudo validar la sesión.";

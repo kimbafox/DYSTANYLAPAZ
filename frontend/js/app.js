@@ -89,6 +89,13 @@ function canExpressInterest(property){
   return Boolean(state.currentUser && property.ownerId !== state.currentUser.id && property.status !== "vendida");
 }
 
+function inferPropertyCategory(priceBOB){
+  const amount = Number(priceBOB) || 0;
+  if (amount >= 1200000) return "alto";
+  if (amount >= 550000) return "medio";
+  return "economico";
+}
+
 function getUserPropertySummary(userId){
   const ownedProperties = state.properties.filter((property) => property.ownerId === userId);
   const soldProperties = ownedProperties.filter((property) => property.status === "vendida");
@@ -342,11 +349,6 @@ function renderPropertyManager(){
         <div class="authGrid">
           <input id="propertyTitle" type="text" placeholder="Título de la propiedad" required>
           <input id="propertyZone" type="text" placeholder="Zona" required>
-          <select id="propertyCategory" class="propertySelect">
-            <option value="alto">Valor alto</option>
-            <option value="medio">Valor medio</option>
-            <option value="economico">Valor económico</option>
-          </select>
           <input id="propertyPrice" type="number" min="1" placeholder="Precio en bolivianos" required>
           <input id="propertyCoords" type="text" placeholder="Latitud, Longitud" readonly required>
           <input id="propertyImages" type="text" placeholder="Imagenes separadas por coma" required>
@@ -356,11 +358,8 @@ function renderPropertyManager(){
           <button type="button" id="clearLocationBtn" class="ghostAction">Limpiar ubicación</button>
         </div>
         <p id="locationPickerStatus" class="helperText">Haz clic en el botón y luego selecciona el punto exacto de la casa en el mapa.</p>
+        <p class="helperText helperText--neutral">La categoría de valor se calcula automáticamente según el precio ingresado.</p>
         <textarea id="propertyDesc" placeholder="Descripción" required></textarea>
-        <label class="roleOption">
-          <input id="propertyIsNew" type="checkbox" checked>
-          <span>Marcar como nueva</span>
-        </label>
         <p id="propertyFeedback" class="feedback" hidden></p>
         <button type="submit">Publicar propiedad</button>
       </form>
@@ -525,7 +524,6 @@ async function handlePropertySubmit(event){
   const payload = {
     title: document.getElementById("propertyTitle")?.value || "",
     zone: document.getElementById("propertyZone")?.value || "",
-    category: document.getElementById("propertyCategory")?.value || "",
     priceBOB: Number(document.getElementById("propertyPrice")?.value || 0),
     coords,
     images: String(document.getElementById("propertyImages")?.value || "")
@@ -533,8 +531,10 @@ async function handlePropertySubmit(event){
       .map((value) => value.trim())
       .filter(Boolean),
     desc: document.getElementById("propertyDesc")?.value || "",
-    isNew: Boolean(document.getElementById("propertyIsNew")?.checked),
+    isNew: true,
   };
+
+  payload.category = inferPropertyCategory(payload.priceBOB);
 
   button.disabled = true;
   setPropertyFeedback("");
@@ -542,7 +542,6 @@ async function handlePropertySubmit(event){
   try {
     await createProperty(payload);
     event.currentTarget.reset();
-    document.getElementById("propertyIsNew").checked = true;
     clearDraftLocation();
     setPropertyFeedback("Propiedad publicada correctamente.", "success");
     await loadProperties();
@@ -695,7 +694,6 @@ function renderCards(){
         <div class="priceRow">
           <div class="price">${moneyBOB(property.priceBOB)}</div>
           <div class="cardActions">
-            <button class="ghostAction" data-action="focus">Ver en mapa</button>
             ${canExpressInterest(property) ? '<button class="cta" data-action="interest">Me interesa</button>' : ""}
           </div>
         </div>
@@ -724,11 +722,6 @@ function renderCards(){
       event.stopPropagation();
       current = (current + 1) % propertyImages.length;
       setImg();
-    });
-
-    card.querySelector('[data-action="focus"]').addEventListener("click", (event) => {
-      event.stopPropagation();
-      focusOnProperty(property.id);
     });
 
     const interestBtn = card.querySelector('[data-action="interest"]');
@@ -809,6 +802,7 @@ function initMap(){
     maxBoundsViscosity: 1,
     minZoom: 11,
   }).setView(LA_PAZ_CENTER, LA_PAZ_DEFAULT_ZOOM);
+  window.__dynapazMap = state.map;
 
   state.map.fitBounds(laPazBounds);
 

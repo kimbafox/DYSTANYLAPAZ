@@ -11,40 +11,41 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
 </head>
 <body class="authPage">
-<main class="authBox docsContent docsDashboard">
+<main class="docsDashboard docsDashboard--workspace">
+<aside class="workspaceSidebar">
 <a class="backLink" href="../index.html">Volver al panel principal</a>
-<p id="roleGuardMessage" class="feedback" hidden></p>
 
-<section class="docsHero">
-<div>
+<div class="workspaceSidebar__hero">
 <p class="docsEyebrow">Panel HTML</p>
 <h1>Usuario</h1>
-<p class="authIntro">Explora, publica y marca la ubicación de tu inmueble.</p>
+<p class="authIntro">Navega por el panel desde un solo menú y abre solo la sección que necesites.</p>
 <div id="sessionSummary" class="roleBadgeRow"></div>
 </div>
+
+<nav class="workspaceNav" aria-label="Secciones del panel de usuario">
+<button class="workspaceNav__item is-active" type="button" data-section-target="perfil">Mi perfil</button>
+<button class="workspaceNav__item" type="button" data-section-target="directorio">Directorio</button>
+<button class="workspaceNav__item" type="button" data-section-target="propiedades">Mis propiedades</button>
+<button class="workspaceNav__item" type="button" data-section-target="interesados">Interesados</button>
+<button class="workspaceNav__item" type="button" data-section-target="mapa">Mapa</button>
+</nav>
+
+<div class="workspaceSidebar__footer">
 <a class="cta docsHero__cta" href="../index.html">Ir al portal</a>
-</section>
+<p id="roleGuardMessage" class="feedback" hidden></p>
+</div>
+</aside>
 
-<section class="docsQuickGrid">
-<article class="docFeatureCard">
-<h2>Acciones</h2>
-<ul>
-<li>Ver tu perfil y el directorio.</li>
-<li>Publicar una propiedad propia.</li>
-<li>Marcar la ubicación exacta en el mapa.</li>
-</ul>
-</article>
-</section>
-
-<section class="portalGrid">
-<article class="portalPanel">
+<section class="workspaceContent">
+<article class="portalPanel dashboardSection is-active" data-section-panel="perfil">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Mi perfil</h2>
+<p class="portalPanel__hint">Resumen de tu cuenta y datos principales.</p>
 </div>
 <div id="profileContent" class="profileContent"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection" data-section-panel="directorio">
 <div class="portalPanel__head">
 <h2 id="profilesTitle" class="panelTitle">Perfiles registrados</h2>
 <p id="profilesHint" class="portalPanel__hint">Directorio del sistema</p>
@@ -52,25 +53,26 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 <div id="profilesDirectory" class="profilesDirectory"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection" data-section-panel="propiedades">
 <div class="portalPanel__head">
-<h2 class="panelTitle">Vender propiedad</h2>
-<p class="portalPanel__hint">Completa el formulario y marca el punto en el mapa</p>
+<h2 class="panelTitle">Mis propiedades</h2>
+<p class="portalPanel__hint">Publica, administra y marca ubicación desde un solo lugar.</p>
 </div>
 <div id="propertyManager" class="propertyManager"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection" data-section-panel="interesados">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Bandeja de interesados</h2>
-<p class="portalPanel__hint">Consulta quién quiere contactarte</p>
+<p class="portalPanel__hint">Consulta quién quiere contactarte.</p>
 </div>
 <div id="notificationsInbox" class="profilesDirectory"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection dashboardSection--map" data-section-panel="mapa">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Mapa de venta</h2>
+<p class="portalPanel__hint">Selecciona y revisa ubicaciones desde el mapa.</p>
 </div>
 <div id="map" class="map"></div>
 </article>
@@ -84,6 +86,32 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 document.addEventListener("DOMContentLoaded", async () => {
 	const roleGuardMessage = document.getElementById("roleGuardMessage");
 	const sessionSummary = document.getElementById("sessionSummary");
+	const navButtons = [...document.querySelectorAll("[data-section-target]")];
+	const panels = [...document.querySelectorAll("[data-section-panel]")];
+
+	const activateSection = (sectionName) => {
+		navButtons.forEach((button) => {
+			button.classList.toggle("is-active", button.getAttribute("data-section-target") === sectionName);
+		});
+
+		panels.forEach((panel) => {
+			panel.classList.toggle("is-active", panel.getAttribute("data-section-panel") === sectionName);
+		});
+
+		if (sectionName === "mapa") {
+			window.setTimeout(() => {
+				if (window.__dynapazMap) {
+					window.__dynapazMap.invalidateSize();
+				}
+			}, 180);
+		}
+	};
+
+	navButtons.forEach((button) => {
+		button.addEventListener("click", () => {
+			activateSection(button.getAttribute("data-section-target"));
+		});
+	});
 
 	try {
 		const user = await requireAuth();
@@ -100,6 +128,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 			roleGuardMessage.textContent = "Tu sesión no tiene permisos para cargar este panel HTML.";
 			roleGuardMessage.className = "feedback feedback--error";
 		}
+
+		activateSection("perfil");
 	} catch (error) {
 		roleGuardMessage.hidden = false;
 		roleGuardMessage.textContent = error.message || "No se pudo validar la sesión.";

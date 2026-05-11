@@ -359,17 +359,7 @@ function tieneRol(user, role){
 }
 
 function obtenerRolesRegistro(){
-	const roleUsuario = document.getElementById("roleUsuario");
-	const roleVendedor = document.getElementById("roleVendedor");
-	const roles = [];
-
-	if (roleUsuario && roleUsuario.checked) roles.push("usuario");
-	if (roleVendedor && roleVendedor.checked) {
-		roles.push("vendedor");
-		if (!roles.includes("usuario")) roles.push("usuario");
-	}
-
-	return roles.length ? roles : ["usuario"];
+	return ["usuario"];
 }
 
 function obtenerDatosFormularioRegistro(){

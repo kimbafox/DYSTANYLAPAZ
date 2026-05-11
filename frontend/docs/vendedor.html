@@ -11,51 +11,50 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
 </head>
 <body class="authPage">
-<main class="authBox docsContent docsDashboard">
+<main class="docsDashboard docsDashboard--workspace">
+<aside class="workspaceSidebar">
 <a class="backLink" href="../index.html">Volver al panel principal</a>
-<p id="roleGuardMessage" class="feedback" hidden></p>
 
-<section class="docsHero">
-<div>
+<div class="workspaceSidebar__hero">
 <p class="docsEyebrow">Panel HTML</p>
 <h1>Vendedor</h1>
-<p class="authIntro">Publica, ubica y administra tus inmuebles.</p>
+<p class="authIntro">Publica, administra y revisa interesados usando una navegación lateral simple.</p>
 <div id="sessionSummary" class="roleBadgeRow"></div>
 </div>
+
+<nav class="workspaceNav" aria-label="Secciones del panel vendedor">
+<button class="workspaceNav__item is-active" type="button" data-section-target="propiedades">Propiedades</button>
+<button class="workspaceNav__item" type="button" data-section-target="interesados">Interesados</button>
+<button class="workspaceNav__item" type="button" data-section-target="mapa">Mapa</button>
+</nav>
+
+<div class="workspaceSidebar__footer">
 <a class="cta docsHero__cta" href="../index.html">Abrir dashboard</a>
-</section>
+<p id="roleGuardMessage" class="feedback" hidden></p>
+</div>
+</aside>
 
-<section class="docsQuickGrid">
-<article class="docFeatureCard">
-<h2>Acciones</h2>
-<ul>
-<li>Publicar propiedades nuevas desde el portal principal.</li>
-<li>Eliminar únicamente las propiedades que te pertenecen.</li>
-<li>Usar el mapa para validar la ubicación exacta.</li>
-</ul>
-</article>
-</section>
-
-<section class="portalGrid">
-<article class="portalPanel">
+<section class="workspaceContent">
+<article class="portalPanel dashboardSection is-active" data-section-panel="propiedades">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Gestión de propiedades</h2>
-<p class="portalPanel__hint">Publica y administra tus inmuebles</p>
+<p class="portalPanel__hint">Publica y administra tus inmuebles.</p>
 </div>
 <div id="propertyManager" class="propertyManager"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection" data-section-panel="interesados">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Bandeja de interesados</h2>
-<p class="portalPanel__hint">Contactos y datos personales de quienes preguntaron por tus propiedades</p>
+<p class="portalPanel__hint">Contactos y datos personales de quienes preguntaron por tus propiedades.</p>
 </div>
 <div id="notificationsInbox" class="profilesDirectory"></div>
 </article>
 
-<article class="portalPanel">
+<article class="portalPanel dashboardSection dashboardSection--map" data-section-panel="mapa">
 <div class="portalPanel__head">
 <h2 class="panelTitle">Mapa de publicación</h2>
+<p class="portalPanel__hint">Usa el mapa para validar la ubicación exacta.</p>
 </div>
 <div id="map" class="map"></div>
 </article>
@@ -69,6 +68,32 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 document.addEventListener("DOMContentLoaded", async () => {
 	const roleGuardMessage = document.getElementById("roleGuardMessage");
 	const sessionSummary = document.getElementById("sessionSummary");
+	const navButtons = [...document.querySelectorAll("[data-section-target]")];
+	const panels = [...document.querySelectorAll("[data-section-panel]")];
+
+	const activateSection = (sectionName) => {
+		navButtons.forEach((button) => {
+			button.classList.toggle("is-active", button.getAttribute("data-section-target") === sectionName);
+		});
+
+		panels.forEach((panel) => {
+			panel.classList.toggle("is-active", panel.getAttribute("data-section-panel") === sectionName);
+		});
+
+		if (sectionName === "mapa") {
+			window.setTimeout(() => {
+				if (window.__dynapazMap) {
+					window.__dynapazMap.invalidateSize();
+				}
+			}, 180);
+		}
+	};
+
+	navButtons.forEach((button) => {
+		button.addEventListener("click", () => {
+			activateSection(button.getAttribute("data-section-target"));
+		});
+	});
 
 	try {
 		const user = await requireAuth();
@@ -89,6 +114,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 			<span class="rolePill">${user.correo}</span>
 			<span class="rolePill">${tieneRol(user, "admin") ? "Administrador" : "Vendedor"}</span>
 		`;
+
+		activateSection("propiedades");
 	} catch (error) {
 		roleGuardMessage.hidden = false;
 		roleGuardMessage.textContent = error.message || "No se pudo validar la sesión.";
