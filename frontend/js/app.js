@@ -22,6 +22,14 @@ const LA_PAZ_BOUNDS = [
 const LA_PAZ_CENTER = [-16.4957, -68.1336];
 const LA_PAZ_DEFAULT_ZOOM = 12;
 
+function isWorkspaceDashboard(){
+  return Boolean(document.querySelector(".docsDashboard--workspace"));
+}
+
+function getActiveWorkspaceSection(){
+  return document.querySelector("[data-section-panel].is-active")?.getAttribute("data-section-panel") || "perfil";
+}
+
 function escapeHtml(value){
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -233,6 +241,39 @@ function renderNotifications(){
     </article>
   `).join("");
 }
+
+function renderActiveWorkspaceSection(sectionName = getActiveWorkspaceSection()){
+  if (!isWorkspaceDashboard()) return;
+
+  if (["perfil", "directorio", "cuentas"].includes(sectionName)) {
+    renderProfiles();
+    return;
+  }
+
+  if (sectionName === "propiedades") {
+    renderPropertyManager();
+    return;
+  }
+
+  if (sectionName === "interesados") {
+    renderNotifications();
+    return;
+  }
+
+  if (sectionName === "mapa") {
+    initMap();
+    syncMarkers();
+    if (state.map) {
+      window.setTimeout(() => state.map.invalidateSize(), 180);
+    }
+  }
+}
+
+window.__dynapazDashboard = {
+  activateSection(sectionName){
+    renderActiveWorkspaceSection(sectionName);
+  },
+};
 
 function setCatalogCollapsed(collapsed){
   const layout = document.querySelector(".layout");
@@ -792,7 +833,7 @@ function initSearch(){
 
 function initMap(){
   const mapElement = document.getElementById("map");
-  if (!mapElement || typeof L === "undefined") return;
+  if (!mapElement || typeof L === "undefined" || state.map) return;
 
   const laPazBounds = L.latLngBounds(LA_PAZ_BOUNDS);
 
@@ -834,8 +875,14 @@ async function loadDashboardData(){
   state.users = users;
   state.properties = properties;
   state.notifications = notifications;
-  syncMarkers();
   renderSessionSummary();
+
+  if (isWorkspaceDashboard()) {
+    renderActiveWorkspaceSection();
+    return;
+  }
+
+  syncMarkers();
   renderProfiles();
   renderPropertyManager();
   renderNotifications();
@@ -844,6 +891,8 @@ async function loadDashboardData(){
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
+    if (window.__dynapazSkipDashboardBootstrap) return;
+
     state.currentUser = await requireAuth();
     if (!state.currentUser) return;
 
@@ -851,7 +900,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     initCatalogToggle();
     initFilters();
     initSearch();
-    initMap();
+
+    if (!isWorkspaceDashboard()) {
+      initMap();
+    }
+
     await loadDashboardData();
   } catch (error) {
     alert(error.message || "No se pudo cargar el panel.");
