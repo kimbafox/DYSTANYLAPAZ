@@ -1,33 +1,43 @@
 const express = require("express");
+const { deleteUserById, findUserById, listUsers } = require("../data/auth-store");
 const { writeDb } = require("../data/store");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { sanitizeUser } = require("../utils/validators");
 
 const router = express.Router();
 
-router.get("/", requireAuth, (req, res) => {
-  res.json({ users: req.db.users.map(sanitizeUser) });
+router.get("/", requireAuth, async (req, res, next) => {
+  try {
+    const users = await listUsers();
+    res.json({ users: users.map(sanitizeUser) });
+  } catch (error) {
+    next(error);
+  }
 });
 
-router.delete("/:id", requireAuth, requireRole(["admin"]), (req, res) => {
-  const userId = req.params.id;
+router.delete("/:id", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+  try {
+    const userId = req.params.id;
 
-  if (req.user.id === userId) {
-    res.status(400).json({ error: "El administrador no puede eliminar su propia cuenta activa." });
-    return;
+    if (req.user.id === userId) {
+      res.status(400).json({ error: "El administrador no puede eliminar su propia cuenta activa." });
+      return;
+    }
+
+    const user = await findUserById(userId);
+    if (!user) {
+      res.status(404).json({ error: "Usuario no encontrado." });
+      return;
+    }
+
+    req.db.properties = req.db.properties.filter((property) => property.ownerId !== userId);
+    writeDb(req.db);
+    await deleteUserById(userId);
+
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
   }
-
-  if (!req.db.users.some((user) => user.id === userId)) {
-    res.status(404).json({ error: "Usuario no encontrado." });
-    return;
-  }
-
-  req.db.users = req.db.users.filter((user) => user.id !== userId);
-  req.db.sessions = req.db.sessions.filter((session) => session.userId !== userId);
-  req.db.properties = req.db.properties.filter((property) => property.ownerId !== userId);
-  writeDb(req.db);
-
-  res.json({ ok: true });
 });
 
 module.exports = router;

@@ -2,6 +2,7 @@ const SESSION_TOKEN_KEY = "dynapaz_session_token";
 const USERS_STORAGE_KEY = "dynapaz_users";
 const PROPERTIES_STORAGE_KEY = "dynapaz_properties";
 const INTERESTS_STORAGE_KEY = "dynapaz_interests";
+const API_BASE = "/api";
 
 const DEMO_USERS = [
 	{
@@ -48,6 +49,7 @@ const DEMO_PROPERTIES = [
 		title: "Casa moderna en Calacoto",
 		zone: "Zona Sur • Calacoto",
 		category: "alto",
+		status: "disponible",
 		isNew: true,
 		priceBOB: 1705200,
 		desc: "4 dormitorios, garaje, jardín y excelente iluminación.",
@@ -61,6 +63,7 @@ const DEMO_PROPERTIES = [
 		title: "Departamento cómodo en Miraflores",
 		zone: "Centro • Miraflores",
 		category: "medio",
+		status: "vendida",
 		isNew: false,
 		priceBOB: 682080,
 		desc: "2 dormitorios, balcón y acceso rápido a hospitales y universidades.",
@@ -74,6 +77,7 @@ const DEMO_PROPERTIES = [
 		title: "Casa económica cerca del centro",
 		zone: "Norte • Sector accesible",
 		category: "economico",
+		status: "disponible",
 		isNew: false,
 		priceBOB: 361920,
 		desc: "3 dormitorios, patio y buena proyección para primera compra.",
@@ -119,6 +123,37 @@ function writeStorage(key, value){
 	localStorage.setItem(key, JSON.stringify(value));
 }
 
+async function apiRequest(path, options = {}){
+	const token = getSessionToken();
+	const headers = {
+		...(options.body ? { "Content-Type": "application/json" } : {}),
+		...(options.headers || {}),
+	};
+
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
+	const response = await fetch(`${API_BASE}${path}`, {
+		method: options.method || "GET",
+		headers,
+		body: options.body ? JSON.stringify(options.body) : undefined,
+	});
+
+	let payload = {};
+	try {
+		payload = await response.json();
+	} catch {
+		payload = {};
+	}
+
+	if (!response.ok) {
+		throw new Error(payload.error || "No se pudo completar la solicitud.");
+	}
+
+	return payload;
+}
+
 function getUsersDb(){
 	return readStorage(USERS_STORAGE_KEY, DEMO_USERS);
 }
@@ -127,8 +162,57 @@ function saveUsersDb(users){
 	writeStorage(USERS_STORAGE_KEY, users);
 }
 
+function syncUsersCache(users){
+	const sanitizedUsers = Array.isArray(users) ? users.map((user) => publicUser(user)) : [];
+	saveUsersDb(sanitizedUsers);
+
+	if (currentUserCache) {
+		const refreshedCurrentUser = sanitizedUsers.find((user) => user.id === currentUserCache.id);
+		if (refreshedCurrentUser) {
+			currentUserCache = refreshedCurrentUser;
+		}
+	}
+
+	return sanitizedUsers;
+}
+
+function upsertUserCache(user){
+	if (!user) return null;
+
+	const sanitizedUser = publicUser(user);
+	const users = getUsersDb().map((item) => publicUser(item));
+	const nextUsers = users.filter((item) => item.id !== sanitizedUser.id);
+	nextUsers.push(sanitizedUser);
+	saveUsersDb(nextUsers);
+	return sanitizedUser;
+}
+
+function removeUserCache(userId){
+	saveUsersDb(getUsersDb().filter((user) => user.id !== userId));
+}
+
+function normalizePhone(phone){
+	return String(phone || "").replace(/\D/g, "");
+}
+
+function buildWhatsappLink(phone, message = ""){
+	const digits = normalizePhone(phone);
+	if (!digits) return "";
+
+	const fullNumber = digits.startsWith("591") ? digits : `591${digits}`;
+	const text = String(message || "").trim();
+    return `https://wa.me/${fullNumber}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+}
+
+function normalizeProperty(property){
+	return {
+		...clone(property),
+		status: property?.status === "vendida" ? "vendida" : "disponible",
+	};
+}
+
 function getPropertiesDb(){
-	return readStorage(PROPERTIES_STORAGE_KEY, DEMO_PROPERTIES);
+	return readStorage(PROPERTIES_STORAGE_KEY, DEMO_PROPERTIES).map((property) => normalizeProperty(property));
 }
 
 function savePropertiesDb(properties){
@@ -153,11 +237,40 @@ function createId(prefix){
 	return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function buildOwnerSummary(owner, properties){
+	if (!owner) return null;
+
+	const ownerProperties = properties.filter((property) => property.ownerId === owner.id);
+	const soldProperties = ownerProperties.filter((property) => property.status === "vendida");
+
+	return {
+		id: owner.id,
+		nombreCompleto: `${owner.nombre} ${owner.apellido}`,
+		correo: owner.correo,
+		telefono: owner.telefono,
+		roles: Array.isArray(owner.roles) ? [...owner.roles] : [],
+		whatsappLink: buildWhatsappLink(owner.telefono),
+		publishedCount: ownerProperties.length,
+		soldCount: soldProperties.length,
+		soldProperties: soldProperties.map((property) => ({
+			id: property.id,
+			title: property.title,
+			zone: property.zone,
+		})),
+	};
+}
+
 function enrichProperty(property, users){
+	const normalizedProperty = normalizeProperty(property);
 	const owner = users.find((user) => user.id === property.ownerId);
 	return {
-		...clone(property),
+		...normalizedProperty,
 		ownerName: owner ? `${owner.nombre} ${owner.apellido}` : "Sin asignar",
+		ownerPhone: owner?.telefono || "",
+		ownerWhatsappLink: owner
+			? buildWhatsappLink(owner.telefono, `Hola ${owner.nombre}, vi tu propiedad ${normalizedProperty.title} en DYNApaz 87 y quiero mas informacion.`)
+			: "",
+		ownerSummary: buildOwnerSummary(owner, getPropertiesDb()),
 	};
 }
 
@@ -305,18 +418,19 @@ async function getCurrentUser(force = false){
 		return null;
 	}
 
-	const user = getUsersDb().find((item) => item.id === sessionUserId);
-	if (!user) {
+	try {
+		const response = await apiRequest("/auth/me");
+		currentUserCache = upsertUserCache(response.user);
+		return currentUserCache;
+	} catch (error) {
 		clearSession();
 		return null;
 	}
-
-	currentUserCache = publicUser(user);
-	return currentUserCache;
 }
 
 async function getUsers(){
-	return getUsersDb().map((user) => publicUser(user));
+	const response = await apiRequest("/users");
+	return syncUsersCache(response.users || []);
 }
 
 async function getProperties(){
@@ -393,6 +507,7 @@ async function createProperty(payload){
 		title: String(payload.title).trim(),
 		zone: String(payload.zone).trim(),
 		category: String(payload.category).trim(),
+		status: "disponible",
 		isNew: Boolean(payload.isNew),
 		priceBOB: Number(payload.priceBOB),
 		desc: String(payload.desc).trim(),
@@ -403,6 +518,24 @@ async function createProperty(payload){
 	};
 
 	properties.unshift(property);
+	savePropertiesDb(properties);
+	return enrichProperty(property, getUsersDb());
+}
+
+async function updatePropertyStatus(propertyId, status){
+	const currentUser = await getCurrentUser();
+	const properties = getPropertiesDb();
+	const property = properties.find((item) => item.id === propertyId);
+
+	if (!currentUser || !property) {
+		throw new Error("Propiedad no encontrada.");
+	}
+
+	if (!tieneRol(currentUser, "admin") && property.ownerId !== currentUser.id) {
+		throw new Error("Solo puedes cambiar el estado de tus propias propiedades.");
+	}
+
+	property.status = status === "vendida" ? "vendida" : "disponible";
 	savePropertiesDb(properties);
 	return enrichProperty(property, getUsersDb());
 }
@@ -439,22 +572,16 @@ async function register(){
 	setAuthFeedback("");
 
 	try {
-		const users = getUsersDb();
-		const correo = normalizarCorreo(data.correo);
-		if (users.some((user) => normalizarCorreo(user.correo) === correo)) {
-			throw new Error("Ese correo ya esta registrado.");
-		}
+		const response = await apiRequest("/auth/register", {
+			method: "POST",
+			body: {
+				...data,
+				correo: normalizarCorreo(data.correo),
+			},
+		});
 
-		const user = {
-			id: createId("user"),
-			...data,
-			correo,
-			password: data.password,
-		};
-
-		users.push(user);
-		saveUsersDb(users);
-		saveSession(user.id, publicUser(user));
+		const user = upsertUserCache(response.user);
+		saveSession(response.token, user);
 		setAuthFeedback("Registro exitoso. Redirigiendo...", "success");
 		window.location = "index.html";
 	} catch (requestError) {
@@ -483,12 +610,13 @@ async function login(){
 	setAuthFeedback("");
 
 	try {
-		const user = getUsersDb().find((item) => normalizarCorreo(item.correo) === correo && item.password === password);
-		if (!user) {
-			throw new Error("Correo o contrasena incorrectos.");
-		}
+		const response = await apiRequest("/auth/login", {
+			method: "POST",
+			body: { correo, password },
+		});
 
-		saveSession(user.id, publicUser(user));
+		const user = upsertUserCache(response.user);
+		saveSession(response.token, user);
 		window.location = "index.html";
 	} catch (requestError) {
 		setAuthFeedback(requestError.message || "No se pudo iniciar sesion.");
@@ -498,6 +626,12 @@ async function login(){
 }
 
 async function logout(){
+	try {
+		await apiRequest("/auth/logout", { method: "POST" });
+	} catch {
+		// Si la sesion ya expiro en servidor, limpiamos cliente igual.
+	}
+
 	clearSession();
 	window.location = "login.html";
 }
@@ -512,13 +646,8 @@ async function eliminarUsuario(userId){
 		throw new Error("No puedes eliminar tu propio usuario desde el prototipo.");
 	}
 
-	const users = getUsersDb();
-	const userExists = users.some((user) => user.id === userId);
-	if (!userExists) {
-		throw new Error("Usuario no encontrado.");
-	}
-
-	saveUsersDb(users.filter((user) => user.id !== userId));
+	await apiRequest(`/users/${userId}`, { method: "DELETE" });
+	removeUserCache(userId);
 	savePropertiesDb(getPropertiesDb().filter((property) => property.ownerId !== userId));
 	saveInterestsDb(getInterestsDb().filter((interest) => interest.ownerId !== userId && interest.interestedUserId !== userId));
 	return true;
@@ -562,6 +691,7 @@ window.eliminarUsuario = eliminarUsuario;
 window.requireAuth = requireAuth;
 window.getProperties = getProperties;
 window.createProperty = createProperty;
+window.updatePropertyStatus = updatePropertyStatus;
 window.deleteProperty = deleteProperty;
 window.getInterests = getInterests;
 window.registerInterest = registerInterest;

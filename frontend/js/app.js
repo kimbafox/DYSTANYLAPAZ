@@ -63,12 +63,13 @@ function propertyPills(property){
   if (property.category === "alto") labels.push("Valor alto");
   if (property.category === "medio") labels.push("Valor medio");
   if (property.category === "economico") labels.push("Económica");
-  labels.push(property.isNew ? "Nueva" : "Disponible");
+  labels.push(property.status === "vendida" ? "Vendida" : property.isNew ? "Nueva" : "Disponible");
 
   return labels.map((label) => `<span class="rolePill">${label}</span>`).join("");
 }
 
 function badgeText(property){
+  if (property.status === "vendida") return "Vendida";
   if (property.isNew) return "Nueva";
   if (property.category === "alto") return "Valor alto";
   if (property.category === "medio") return "Valor medio";
@@ -85,7 +86,54 @@ function canDeleteProperty(property){
 }
 
 function canExpressInterest(property){
-  return Boolean(state.currentUser && property.ownerId !== state.currentUser.id);
+  return Boolean(state.currentUser && property.ownerId !== state.currentUser.id && property.status !== "vendida");
+}
+
+function getUserPropertySummary(userId){
+  const ownedProperties = state.properties.filter((property) => property.ownerId === userId);
+  const soldProperties = ownedProperties.filter((property) => property.status === "vendida");
+
+  return {
+    publishedCount: ownedProperties.length,
+    soldCount: soldProperties.length,
+    soldProperties,
+  };
+}
+
+function buildWhatsappLabel(user){
+  if (!user?.telefono) return "Sin WhatsApp";
+  return `WhatsApp ${user.telefono}`;
+}
+
+function buildProfileActions(user){
+  const summary = getUserPropertySummary(user.id);
+  const soldMarkup = summary.soldProperties.length
+    ? `
+      <div class="soldProperties">
+        ${summary.soldProperties.slice(0, 3).map((property) => `<span class="soldPropertyChip">${escapeHtml(property.title)}</span>`).join("")}
+      </div>
+    `
+    : '<p class="profileHint">Todavía no registra casas vendidas.</p>';
+
+  const whatsappLink = user.telefono
+    ? `https://wa.me/591${String(user.telefono).replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${user.nombre}, vi tu perfil en DYNApaz 87 y quiero hablar sobre tus propiedades.`)}`
+    : "";
+
+  return {
+    summaryMarkup: `
+      <div class="profileStats">
+        <div class="profileStat"><strong>${summary.publishedCount}</strong><span>Publicadas</span></div>
+        <div class="profileStat"><strong>${summary.soldCount}</strong><span>Vendidas</span></div>
+      </div>
+      ${soldMarkup}
+    `,
+    contactMarkup: `
+      <div class="sessionCard__actions profileActionsRow">
+        ${whatsappLink ? `<a class="ghostAction" href="${whatsappLink}" target="_blank" rel="noreferrer">${escapeHtml(buildWhatsappLabel(user))}</a>` : ""}
+        ${user.telefono ? `<a class="ghostAction" href="tel:${escapeHtml(String(user.telefono).replace(/\s+/g, ""))}">Llamar</a>` : ""}
+      </div>
+    `,
+  };
 }
 
 function formatDateTime(value){
@@ -98,6 +146,8 @@ function formatDateTime(value){
 }
 
 function profileMarkup(user, options = {}){
+  const profileActions = buildProfileActions(user);
+
   return `
     <article class="profileCard">
       <div class="profileCard__top">
@@ -114,6 +164,9 @@ function profileMarkup(user, options = {}){
         <div class="profileLine"><strong>Dirección</strong>${escapeHtml(user.direccion)}</div>
         <div class="profileLine"><strong>Nacimiento</strong>${escapeHtml(user.fechaNacimiento)}</div>
       </div>
+
+      ${profileActions.summaryMarkup}
+      ${profileActions.contactMarkup}
 
       ${options.canDelete ? `<div class="sessionCard__actions"><button class="dangerBtn" data-delete-user="${user.id}">Eliminar usuario</button></div>` : ""}
     </article>
@@ -330,8 +383,15 @@ function renderPropertyManager(){
             <div class="profileGrid">
               <div class="profileLine"><strong>Precio</strong>${moneyBOB(property.priceBOB)}</div>
               <div class="profileLine"><strong>Publicado por</strong>${escapeHtml(property.ownerName)}</div>
+              <div class="profileLine"><strong>Estado</strong>${property.status === "vendida" ? "Vendida" : "Disponible"}</div>
+              <div class="profileLine"><strong>Contacto</strong>${escapeHtml(property.ownerPhone || "Sin teléfono")}</div>
             </div>
-            ${canDeleteProperty(property) ? `<div class="sessionCard__actions"><button class="dangerBtn" data-delete-property="${property.id}">Eliminar propiedad</button></div>` : ""}
+            ${canDeleteProperty(property) ? `
+              <div class="sessionCard__actions">
+                <button class="ghostAction" data-toggle-property-status="${property.id}" data-next-status="${property.status === "vendida" ? "disponible" : "vendida"}">${property.status === "vendida" ? "Marcar disponible" : "Marcar vendida"}</button>
+                <button class="dangerBtn" data-delete-property="${property.id}">Eliminar propiedad</button>
+              </div>
+            ` : ""}
           </article>
         `).join("")
         : `<div class="emptyState">No tienes propiedades administrables todavía.</div>`}
@@ -377,6 +437,24 @@ function renderPropertyManager(){
         renderCards();
       } catch (error) {
         alert(error.message || "No se pudo eliminar la propiedad.");
+      }
+    });
+  });
+
+  manager.querySelectorAll("[data-toggle-property-status]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const propertyId = button.getAttribute("data-toggle-property-status");
+      const nextStatus = button.getAttribute("data-next-status") || "disponible";
+      if (!propertyId) return;
+
+      try {
+        await updatePropertyStatus(propertyId, nextStatus);
+        await loadProperties();
+        renderPropertyManager();
+        renderProfiles();
+        renderCards();
+      } catch (error) {
+        alert(error.message || "No se pudo actualizar el estado de la propiedad.");
       }
     });
   });
@@ -588,11 +666,30 @@ function renderCards(){
         <div class="card__meta">
           <span>${escapeHtml(property.zone)}</span>
           <span>•</span>
-          <span>${property.isNew ? "Publicación nueva" : "Disponible"}</span>
+          <span>${property.status === "vendida" ? "Casa vendida" : property.isNew ? "Publicación nueva" : "Disponible"}</span>
         </div>
         <div class="card__meta">
           <span>Publica:</span>
           <span>${escapeHtml(property.ownerName)}</span>
+        </div>
+        <div class="sellerPanel">
+          <div class="sellerPanel__head">
+            <strong>${escapeHtml(property.ownerSummary?.nombreCompleto || property.ownerName)}</strong>
+            <span>${escapeHtml(property.ownerPhone || "Sin teléfono")}</span>
+          </div>
+          <div class="sellerPanel__stats">
+            <span>${Number(property.ownerSummary?.publishedCount || 0)} publicadas</span>
+            <span>${Number(property.ownerSummary?.soldCount || 0)} vendidas</span>
+          </div>
+          <div class="cardActions">
+            ${property.ownerWhatsappLink ? `<a class="ghostAction" href="${property.ownerWhatsappLink}" target="_blank" rel="noreferrer">Contactar por WhatsApp</a>` : ""}
+            ${property.ownerPhone ? `<a class="ghostAction" href="tel:${escapeHtml(String(property.ownerPhone).replace(/\s+/g, ""))}">Llamar</a>` : ""}
+          </div>
+          ${(property.ownerSummary?.soldProperties || []).length ? `
+            <div class="soldProperties soldProperties--compact">
+              ${(property.ownerSummary.soldProperties || []).slice(0, 2).map((soldProperty) => `<span class="soldPropertyChip">${escapeHtml(soldProperty.title)}</span>`).join("")}
+            </div>
+          ` : ""}
         </div>
         <div class="card__description">${escapeHtml(property.desc)}</div>
         <div class="priceRow">
@@ -602,6 +699,7 @@ function renderCards(){
             ${canExpressInterest(property) ? '<button class="cta" data-action="interest">Me interesa</button>' : ""}
           </div>
         </div>
+        ${property.status === "vendida" ? '<div class="emptyState">Esta casa ya fue vendida. Usa WhatsApp o teléfono para consultar otras opciones del mismo vendedor.</div>' : ""}
         ${canDeleteProperty(property) ? `<div class="sessionCard__actions"><button class="dangerBtn" data-action="delete">Eliminar</button></div>` : ""}
       </div>
     `;

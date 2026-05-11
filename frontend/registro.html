@@ -9,7 +9,17 @@
 
 <body class="authPage">
 
-<div class="authBox">
+<main class="authShell">
+
+<section class="authVisual authVisual--register">
+<div class="authVisual__overlay">
+<p class="authVisual__eyebrow">Registro</p>
+<h1 class="authVisual__title">Crea tu cuenta y empieza a publicar tus inmuebles.</h1>
+<p class="authVisual__text">Registra tus datos, activa tu rol y entra al panel con una interfaz más clara y directa.</p>
+</div>
+</section>
+
+<section class="authBox authBox--split">
 
 <h2>Crear cuenta</h2>
 
@@ -43,9 +53,13 @@
 
 <button onclick="register()">Registrarse</button>
 
+<div class="authLinks">
 <a href="login.html">Volver al login</a>
-
 </div>
+
+</section>
+
+</main>
 
 <script src="./js/auth.js"></script>
 

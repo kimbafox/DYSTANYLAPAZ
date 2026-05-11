@@ -9,7 +9,17 @@
 
 <body class="authPage">
 
-<div class="authBox">
+<main class="authShell">
+
+<section class="authVisual authVisual--login">
+<div class="authVisual__overlay">
+<p class="authVisual__eyebrow">DYNApaz 87</p>
+<h1 class="authVisual__title">Encuentra, vende y conecta con clientes reales.</h1>
+<p class="authVisual__text">Accede a tu cuenta para ver propiedades, contactar vendedores y gestionar tu perfil.</p>
+</div>
+</section>
+
+<section class="authBox authBox--split">
 
 <p id="authFeedback" class="feedback" hidden></p>
 
@@ -22,11 +32,14 @@
 
 <button onclick="login()">Entrar</button>
 
-
+<div class="authLinks">
 <p>No tienes cuenta?</p>
 <a href="registro.html">Registrarse</a>
-
 </div>
+
+</section>
+
+</main>
 
 <script src="./js/auth.js"></script>
 

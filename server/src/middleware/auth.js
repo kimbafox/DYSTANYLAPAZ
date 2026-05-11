@@ -1,31 +1,33 @@
 const { readDb } = require("../data/store");
+const { findSessionWithUser } = require("../data/auth-store");
 
-function getAuthenticatedRequest(req){
+async function getAuthenticatedRequest(req){
   const authHeader = String(req.headers.authorization || "");
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   if (!token) return null;
 
   const db = readDb();
-  const session = db.sessions.find((item) => item.token === token);
+  const session = await findSessionWithUser(token);
   if (!session) return null;
 
-  const user = db.users.find((item) => item.id === session.userId);
-  if (!user) return null;
-
-  return { db, token, user };
+  return { db, token: session.token, user: session.user };
 }
 
-function requireAuth(req, res, next){
-  const auth = getAuthenticatedRequest(req);
-  if (!auth) {
-    res.status(401).json({ error: "Sesion invalida o expirada." });
-    return;
-  }
+async function requireAuth(req, res, next){
+  try {
+    const auth = await getAuthenticatedRequest(req);
+    if (!auth) {
+      res.status(401).json({ error: "Sesion invalida o expirada." });
+      return;
+    }
 
-  req.db = auth.db;
-  req.token = auth.token;
-  req.user = auth.user;
-  next();
+    req.db = auth.db;
+    req.token = auth.token;
+    req.user = auth.user;
+    next();
+  } catch (error) {
+    next(error);
+  }
 }
 
 function requireRole(roles){

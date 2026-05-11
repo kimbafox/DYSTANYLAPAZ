@@ -1,14 +1,16 @@
 const express = require("express");
 const { frontendDir } = require("./config");
 const { ensureDatabase } = require("./data/store");
+const { initPostgres } = require("./data/postgres");
 const { corsMiddleware } = require("./middleware/cors");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/users.routes");
 const propertyRoutes = require("./routes/properties.routes");
 
-function createApp(){
+async function createApp(){
   ensureDatabase();
+  await initPostgres();
 
   const app = express();
   app.use(express.json({ limit: "1mb" }));

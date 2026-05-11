@@ -487,6 +487,87 @@ body::before{
   line-height: 1.45;
 }
 
+.sellerPanel{
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(30,127,79,0.14);
+  background: linear-gradient(180deg, rgba(30,127,79,0.06), rgba(255,255,255,0.94));
+}
+
+.sellerPanel__head,
+.sellerPanel__stats,
+.profileStats,
+.soldProperties,
+.profileActionsRow{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sellerPanel__head{
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.sellerPanel__head strong{
+  font-size: 14px;
+}
+
+.sellerPanel__head span,
+.sellerPanel__stats span,
+.profileHint{
+  font-size: 12px;
+  color: rgba(0,0,0,0.65);
+}
+
+.sellerPanel__stats,
+.soldProperties,
+.profileStats,
+.profileActionsRow{
+  margin-top: 10px;
+}
+
+.profileStats{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.profileStat{
+  border: 1px solid rgba(30,127,79,0.12);
+  padding: 10px 12px;
+  background: rgba(30,127,79,0.05);
+}
+
+.profileStat strong,
+.profileStat span{
+  display: block;
+}
+
+.profileStat strong{
+  font-size: 18px;
+  color: var(--green);
+}
+
+.profileStat span{
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(0,0,0,0.65);
+}
+
+.soldPropertyChip{
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  background: rgba(255,216,77,0.2);
+  color: #6a4b00;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.soldProperties--compact{
+  margin-top: 8px;
+}
+
 .priceRow{
   margin-top: 14px;
   display: flex;
@@ -736,6 +817,11 @@ body::before{
   cursor: pointer;
 }
 
+.profileActionsRow .ghostAction,
+.sellerPanel .ghostAction{
+  padding: 10px 12px;
+}
+
 .docLinkCard{
   display: flex;
   flex-direction: column;
@@ -902,30 +988,88 @@ body::before{
 
 .authPage{
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
   background:
-    radial-gradient(circle at top left, rgba(47,170,106,0.18), transparent 32%),
-    radial-gradient(circle at bottom right, rgba(255,216,77,0.18), transparent 26%);
+    linear-gradient(135deg, rgba(10,34,20,0.94), rgba(16,79,48,0.9)),
+    url("../assets/background.jpg") center/cover no-repeat;
+}
+
+.authShell{
+  width: min(1160px, 100%);
+  min-height: min(760px, calc(100vh - 56px));
+  display: grid;
+  grid-template-columns: minmax(340px, 1.05fr) minmax(360px, 0.95fr);
+  background: rgba(245, 247, 244, 0.97);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.24);
+  overflow: hidden;
+}
+
+.authVisual{
+  position: relative;
+  min-height: 320px;
+  background: linear-gradient(180deg, rgba(9, 29, 18, 0.18), rgba(9, 29, 18, 0.58)), url("../assets/background.jpg") center/cover no-repeat;
+  display: flex;
+  align-items: end;
+}
+
+.authVisual--register{
+  background: linear-gradient(180deg, rgba(25, 55, 25, 0.16), rgba(25, 55, 25, 0.68)), url("../assets/houses/casa1_1.jpg") center/cover no-repeat;
+}
+
+.authVisual__overlay{
+  width: 100%;
+  padding: 40px;
+  color: white;
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.32));
+}
+
+.authVisual__eyebrow{
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.76);
+}
+
+.authVisual__title{
+  margin: 0;
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: 0.98;
+  text-transform: uppercase;
+}
+
+.authVisual__text{
+  max-width: 460px;
+  margin: 18px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.84);
 }
 
 .authBox{
-  width: min(720px, 100%);
-  margin: auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: rgba(255,255,255,0.96);
-  padding: 28px;
-  border-radius: 24px;
-  box-shadow: var(--shadow);
-  border: var(--stroke);
+  justify-content: center;
+  gap: 14px;
+  background: #f7f8f3;
+  padding: 44px;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
 }
 
 .authBox h2,
 .demoAccess h3{
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 28px;
 }
 
 .roleOption{
@@ -933,13 +1077,61 @@ body::before{
   align-items: center;
   gap: 8px;
   background: rgba(30,127,79,0.08);
-  border-radius: 999px;
+  border-radius: 0;
   padding: 9px 12px;
 }
 
 .authBox button{
   background: linear-gradient(90deg, var(--green), var(--greenSoft));
   color: white;
+  border-radius: 0;
+}
+
+.authBox input,
+.authBox textarea,
+.authBox button,
+.authLinks a,
+.authLinks p,
+.roleOption,
+.feedback,
+.demoAccess{
+  border-radius: 0;
+}
+
+.authBox input,
+.authBox textarea{
+  background: white;
+  border: 1px solid rgba(0,0,0,0.14);
+}
+
+.authBox input:focus,
+.authBox textarea:focus{
+  outline: none;
+  border-color: rgba(30,127,79,0.68);
+  box-shadow: inset 0 0 0 1px rgba(30,127,79,0.2);
+}
+
+.authBox--split{
+  align-self: stretch;
+}
+
+.authLinks{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  color: rgba(0,0,0,0.68);
+}
+
+.authLinks a{
+  color: var(--green);
+  text-decoration: none;
+  font-weight: 800;
+  border-bottom: 2px solid transparent;
+}
+
+.authLinks a:hover{
+  border-bottom-color: var(--green);
 }
 
 .demoAccess{
@@ -1059,6 +1251,25 @@ body::before{
 @media (max-width: 720px){
   .docsHero{
     flex-direction: column;
+  }
+
+  .authPage{
+    padding: 0;
+  }
+
+  .authShell{
+    width: 100%;
+    min-height: 100vh;
+    grid-template-columns: 1fr;
+  }
+
+  .authVisual{
+    min-height: 260px;
+  }
+
+  .authVisual__overlay,
+  .authBox{
+    padding: 24px 20px;
   }
 
   .docsHero__cta{

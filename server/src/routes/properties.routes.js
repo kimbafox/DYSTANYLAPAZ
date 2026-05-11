@@ -1,4 +1,5 @@
 const express = require("express");
+const { listUsers } = require("../data/auth-store");
 const { writeDb } = require("../data/store");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { enrichProperty } = require("../services/property.service");
@@ -7,39 +8,74 @@ const { validatePropertyPayload } = require("../utils/validators");
 
 const router = express.Router();
 
-router.get("/", requireAuth, (req, res) => {
-  res.json({
-    properties: req.db.properties.map((property) => enrichProperty(property, req.db.users)),
-  });
+router.get("/", requireAuth, async (req, res, next) => {
+  try {
+    const users = await listUsers();
+    res.json({
+      properties: req.db.properties.map((property) => enrichProperty(property, users, req.db.properties)),
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
-router.post("/", requireAuth, requireRole(["admin", "vendedor"]), (req, res) => {
-  const data = req.body || {};
-  const validationError = validatePropertyPayload(data);
+router.post("/", requireAuth, requireRole(["admin", "vendedor"]), async (req, res, next) => {
+  try {
+    const data = req.body || {};
+    const validationError = validatePropertyPayload(data);
 
-  if (validationError) {
-    res.status(400).json({ error: validationError });
-    return;
+    if (validationError) {
+      res.status(400).json({ error: validationError });
+      return;
+    }
+
+    const property = {
+      id: createId("prop"),
+      title: String(data.title).trim(),
+      zone: String(data.zone).trim(),
+      category: data.category,
+      status: "disponible",
+      isNew: Boolean(data.isNew),
+      priceBOB: Number(data.priceBOB),
+      desc: String(data.desc).trim(),
+      coords: data.coords.map(Number),
+      images: data.images.map((item) => String(item).trim()).filter(Boolean),
+      ownerId: req.user.id,
+      createdAt: new Date().toISOString(),
+    };
+
+    req.db.properties.unshift(property);
+    writeDb(req.db);
+
+    const users = await listUsers();
+    res.status(201).json({ property: enrichProperty(property, users, req.db.properties) });
+  } catch (error) {
+    next(error);
   }
+});
 
-  const property = {
-    id: createId("prop"),
-    title: String(data.title).trim(),
-    zone: String(data.zone).trim(),
-    category: data.category,
-    isNew: Boolean(data.isNew),
-    priceBOB: Number(data.priceBOB),
-    desc: String(data.desc).trim(),
-    coords: data.coords.map(Number),
-    images: data.images.map((item) => String(item).trim()).filter(Boolean),
-    ownerId: req.user.id,
-    createdAt: new Date().toISOString(),
-  };
+router.patch("/:id/status", requireAuth, requireRole(["admin", "vendedor"]), async (req, res, next) => {
+  try {
+    const property = req.db.properties.find((item) => item.id === req.params.id);
+    if (!property) {
+      res.status(404).json({ error: "Propiedad no encontrada." });
+      return;
+    }
 
-  req.db.properties.unshift(property);
-  writeDb(req.db);
+    const canUpdate = req.user.roles.includes("admin") || property.ownerId === req.user.id;
+    if (!canUpdate) {
+      res.status(403).json({ error: "Solo puedes cambiar el estado de tus propias propiedades." });
+      return;
+    }
 
-  res.status(201).json({ property: enrichProperty(property, req.db.users) });
+    property.status = req.body?.status === "vendida" ? "vendida" : "disponible";
+    writeDb(req.db);
+
+    const users = await listUsers();
+    res.json({ property: enrichProperty(property, users, req.db.properties) });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.delete("/:id", requireAuth, requireRole(["admin", "vendedor"]), (req, res) => {

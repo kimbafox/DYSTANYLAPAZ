@@ -2,12 +2,14 @@
   "name": "dynapaz87",
   "version": "1.0.0",
   "private": true,
-  "description": "Prototipo frontend estatico de portal inmobiliario.",
+  "description": "Portal inmobiliario con backend Express y autenticacion en PostgreSQL.",
   "scripts": {
-    "start": "serve frontend -l tcp://0.0.0.0:$PORT",
-    "dev": "serve frontend -l 3000"
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "serve:frontend": "serve frontend -l 3000"
   },
   "dependencies": {
+    "pg": "^8.13.1",
     "serve": "^14.2.4"
   }
 }
