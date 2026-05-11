@@ -22,6 +22,18 @@ async function createApp(){
   app.use("/api/users", userRoutes);
   app.use("/api/properties", propertyRoutes);
 
+  app.get("/login", (req, res) => {
+    res.redirect("/login.html");
+  });
+
+  app.get("/registro", (req, res) => {
+    res.redirect("/registro.html");
+  });
+
+  app.get("/register", (req, res) => {
+    res.redirect("/registro.html");
+  });
+
   app.get("/", (req, res) => {
     res.redirect("/login.html");
   });
