@@ -333,7 +333,10 @@ function clearSession(){
 }
 
 function setAuthFeedback(message, type = "error"){
-	const feedback = document.getElementById("authFeedback");
+	const isRegister = document.querySelector('.authAnim')?.classList.contains('is-register')
+		|| document.querySelector('.authCard')?.classList.contains('active');
+	const feedback = document.getElementById(isRegister ? "regFeedback" : "authFeedback")
+		|| document.getElementById("authFeedback");
 	if (!feedback) {
 		if (message) alert(message);
 		return;
@@ -413,14 +416,29 @@ async function getCurrentUser(force = false){
 		currentUserCache = upsertUserCache(response.user);
 		return currentUserCache;
 	} catch (error) {
+		// Fallback: buscar en localStorage cuando no hay servidor
+		const token = getSessionToken();
+		if (token) {
+			const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || "[]");
+			const found = users.find((u) => u.id === token);
+			if (found) {
+				currentUserCache = publicUser(found);
+				return currentUserCache;
+			}
+		}
 		clearSession();
 		return null;
 	}
 }
 
 async function getUsers(){
-	const response = await apiRequest("/users");
-	return syncUsersCache(response.users || []);
+	try {
+		const response = await apiRequest("/users");
+		return syncUsersCache(response.users || []);
+	} catch {
+		// Fallback: devolver usuarios de localStorage cuando no hay servidor
+		return getUsersDb().map((u) => publicUser(u));
+	}
 }
 
 async function getProperties(){
@@ -549,7 +567,9 @@ async function deleteProperty(propertyId){
 }
 
 async function register(){
-	const button = document.querySelector(".authBox button");
+	const button = document.querySelector(".authAnim__form--register button")
+		|| document.querySelector(".authCard .form-box.register .cBtn")
+		|| document.querySelector(".authBox button");
 	const data = obtenerDatosFormularioRegistro();
 	const error = validarRegistro(data);
 
@@ -574,17 +594,45 @@ async function register(){
 		saveSession(response.token, user);
 		setAuthFeedback("Registro exitoso. Redirigiendo...", "success");
 		window.location = "index.html";
-	} catch (requestError) {
-		setAuthFeedback(requestError.message || "No se pudo completar el registro.");
+	} catch {
+		// Fallback localStorage cuando no hay servidor
+		try {
+			initPrototypeStorage();
+			const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || "[]");
+			const correoNorm = normalizarCorreo(data.correo);
+			if (users.find((u) => normalizarCorreo(u.correo) === correoNorm)) {
+				throw new Error("Este correo ya está registrado.");
+			}
+			const newUser = {
+				id: createId("user"),
+				...data,
+				correo: correoNorm,
+				roles: ["usuario"],
+			};
+			users.push(newUser);
+			localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+			saveSession(newUser.id, publicUser(newUser));
+			currentUserCache = publicUser(newUser);
+			setAuthFeedback("Registro exitoso. Redirigiendo...", "success");
+			setTimeout(() => { window.location = "index.html"; }, 800);
+		} catch (localError) {
+			setAuthFeedback(localError.message || "No se pudo completar el registro.");
+		}
 	} finally {
 		setButtonBusy(button, false, "Registrando...");
 	}
 }
 
 async function login(){
-	const button = document.querySelector(".authBox button");
-	const correo = normalizarCorreo(document.getElementById("correo")?.value || "");
-	const password = String(document.getElementById("password")?.value || "");
+	const button = document.querySelector(".authAnim__form--login button")
+		|| document.querySelector(".authCard .form-box.login .cBtn")
+		|| document.querySelector(".authBox button");
+	const correo = normalizarCorreo(
+		(document.getElementById("loginEmail") || document.getElementById("correo"))?.value || ""
+	);
+	const password = String(
+		(document.getElementById("loginPass") || document.getElementById("password"))?.value || ""
+	);
 
 	if (!validarCorreo(correo)) {
 		setAuthFeedback("Correo invalido.");
@@ -608,8 +656,22 @@ async function login(){
 		const user = upsertUserCache(response.user);
 		saveSession(response.token, user);
 		window.location = "index.html";
-	} catch (requestError) {
-		setAuthFeedback(requestError.message || "No se pudo iniciar sesion.");
+	} catch {
+		// Fallback localStorage cuando no hay servidor
+		try {
+			initPrototypeStorage();
+			const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || "[]");
+			const found = users.find(
+				(u) => normalizarCorreo(u.correo) === correo && u.password === password
+			);
+			if (!found) throw new Error("Correo o contraseña incorrectos.");
+			const pub = publicUser(found);
+			saveSession(found.id, pub);
+			currentUserCache = pub;
+			window.location = "index.html";
+		} catch (localError) {
+			setAuthFeedback(localError.message || "No se pudo iniciar sesion.");
+		}
 	} finally {
 		setButtonBusy(button, false, "Entrando...");
 	}

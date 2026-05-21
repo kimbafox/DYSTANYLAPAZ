@@ -3,60 +3,556 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login - DYNASTY 87</title>
+<title>Dynasty87 — Iniciar sesión</title>
+<link rel="icon" href="./assets/LOGO.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./css/style.css">
+<style>
+
+/* ── Cuerpo ─────────────────────────────── */
+body.authPage {
+  background: none;
+  padding: 20px;
+  font-family: "Manrope", sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Fondos borrosos intercambiables ─────── */
+.pageBg {
+  position: fixed;
+  inset: -16px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px);
+  transition: opacity 1s ease;
+  z-index: 0;
+}
+
+.pageBg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 12, 6, 0.68);
+}
+
+.pageBg--login    { background-image: url('./assets/background.jpg');       opacity: 1; }
+.pageBg--register { background-image: url('./assets/houses/casa1_1.jpg');   opacity: 0; }
+
+body.show-register .pageBg--login    { opacity: 0; }
+body.show-register .pageBg--register { opacity: 1; }
+
+/* ── Tarjeta ────────────────────────────── */
+.authCard {
+  position: relative;
+  width: min(900px, 100%);
+  height: min(660px, calc(100vh - 60px));
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 32px 100px rgba(0,0,0,0.55);
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ── Cajas de formulario ────────────────── */
+.authCard .form-box {
+  position: absolute;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 50px;
+  z-index: 1;
+  overflow-y: auto;
+  transition: .6s ease-in-out 1.2s, visibility 0s 1s;
+}
+
+.authCard.active .form-box { right: 50%; }
+.authCard .form-box.register { visibility: hidden; }
+.authCard.active .form-box.register { visibility: visible; }
+
+/* El formulario del registro empieza arriba (tiene más contenido) */
+.authCard .form-box.register {
+  justify-content: flex-start;
+  padding-top: 32px;
+}
+
+/* ── Encabezados ────────────────────────── */
+.authCard h1 {
+  font-family: "Manrope", sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.authCard .authIntro {
+  font-size: 13.5px;
+  color: rgba(0,0,0,0.58);
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+
+.authCard .authKicker {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(30,127,79,0.75);
+  margin: 0 0 18px;
+}
+
+/* ── Campos de entrada ──────────────────── */
+.cInput {
+  width: 100%;
+  padding: 12px 16px;
+  background: #fafafa;
+  border: 1.5px solid rgba(0,0,0,0.10);
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+  color: #111;
+  font-family: "Manrope", sans-serif;
+  font-weight: 500;
+  margin-bottom: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.cInput::placeholder { color: #bbb; font-weight: 400; }
+
+.cInput:focus {
+  background: #fff;
+  border-color: rgba(30,127,79,0.55);
+  box-shadow: 0 0 0 3px rgba(30,127,79,0.08);
+}
+
+textarea.cInput {
+  min-height: 64px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Cuadrícula 2 columnas para registro */
+.cGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cGrid .cInput { margin-bottom: 0; }
+
+/* ── Enlace olvidaste contraseña ────────── */
+.forgotLink {
+  text-align: right;
+  margin: -4px 0 12px;
+}
+
+.forgotLink button {
+  background: none;
+  border: none;
+  color: rgba(30,127,79,0.8);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Manrope", sans-serif;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.forgotLink button:hover { color: var(--green); }
+
+/* ── Botón de envío ─────────────────────── */
+.cBtn {
+  width: 100%;
+  height: 50px;
+  background: linear-gradient(90deg, #113427, #1f6040);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: "Manrope", sans-serif;
+  margin-top: 6px;
+  margin-bottom: 18px;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.cBtn:hover    { opacity: 0.9; transform: translateY(-1px); }
+.cBtn:active   { transform: translateY(0); }
+.cBtn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* ── Enlace cambio de vista ─────────────── */
+.authCard .authLinks {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13.5px;
+  color: rgba(0,0,0,0.58);
+}
+
+.authCard .authLinks p { margin: 0; }
+
+.authCard .authLinks button {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--green);
+  font-weight: 800;
+  cursor: pointer;
+  font-family: "Manrope", sans-serif;
+  font-size: 13.5px;
+  padding: 0;
+  transition: border-color 0.2s;
+}
+
+.authCard .authLinks button:hover { border-bottom-color: var(--green); }
+
+/* ── Feedback ───────────────────────────── */
+.authCard .feedback {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 10px;
+  font-family: "Manrope", sans-serif;
+}
+
+/* ── Ojito de contraseña ────────────────── */
+.passWrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.passWrap .cInput {
+  margin-bottom: 0;
+  padding-right: 46px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #bbb;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+  transition: color 0.2s;
+}
+
+.eyeBtn:hover { color: #555; }
+
+/* ── Toggle box: blob + paneles ─────────── */
+.toggle-box {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Blob animado */
+.toggle-box::before {
+  content: '';
+  position: absolute;
+  left: -250%;
+  width: 300%;
+  height: 100%;
+  background: linear-gradient(155deg, #0c2518 0%, #175235 50%, #1e6644 100%);
+  border-radius: 150px;
+  z-index: 2;
+  transition: 1.8s ease-in-out;
+}
+
+.authCard.active .toggle-box::before { left: 50%; }
+
+/* Paneles sobre el blob */
+.toggle-panel {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 44px;
+  z-index: 3;
+  pointer-events: auto;
+  transition: .6s ease-in-out;
+}
+
+/* FORZAR texto blanco en paneles oscuros */
+.toggle-panel,
+.toggle-panel h1,
+.toggle-panel p,
+.toggle-panel span,
+.toggle-panel strong {
+  color: #fff;
+}
+
+.toggle-panel h1 {
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(22px, 2.6vw, 34px);
+  font-weight: 800;
+  margin: 0 0 12px;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  max-width: 12ch;
+}
+
+.tp-eye {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55) !important;
+  margin: 0 0 14px;
+}
+
+.tp-desc {
+  font-size: 13.5px;
+  color: rgba(255,255,255,0.78) !important;
+  line-height: 1.65;
+  margin: 0 0 26px;
+  max-width: 26ch;
+}
+
+/* Botón de cambio dentro del panel */
+.tpBtn {
+  min-width: 150px;
+  height: 46px;
+  padding: 0 22px;
+  background: transparent;
+  border: 2px solid rgba(255,255,255,0.55);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: "Manrope", sans-serif;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.tpBtn:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.9);
+}
+
+/* Posiciones (igual que el plugin original) */
+.toggle-panel.toggle-left  { left: 0;     transition-delay: 1.2s; }
+.toggle-panel.toggle-right { right: -50%; transition-delay: .6s;  }
+
+.authCard.active .toggle-panel.toggle-left  { left: -50%; transition-delay: .6s;  }
+.authCard.active .toggle-panel.toggle-right { right: 0;   transition-delay: 1.2s; }
+
+/* ── Responsive ─────────────────────────── */
+@media screen and (max-width: 650px) {
+  body.authPage { padding: 0; }
+
+  .authCard {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .authCard .form-box {
+    bottom: 0;
+    width: 100%;
+    height: 72%;
+    padding: 18px 20px;
+    justify-content: flex-start;
+    padding-top: 20px;
+  }
+
+  /* Área táctil más cómoda para dedos */
+  .forgotLink button,
+  .authCard .authLinks button {
+    padding: 8px 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Inputs un poco más grandes para touch */
+  .cInput { padding: 14px 16px; font-size: 16px; /* evita zoom en iOS */ }
+  .passWrap .cInput { padding-right: 48px; }
+
+  /* Botón más alto para touch */
+  .cBtn { height: 54px; }
+
+  .authCard.active .form-box { right: 0; bottom: 28%; }
+
+  .toggle-box::before {
+    left: 0 !important;
+    top: -270%;
+    width: 100%;
+    height: 300%;
+    border-radius: 20vw;
+  }
+
+  .authCard.active .toggle-box::before { top: 72%; }
+
+  .toggle-panel { width: 100%; height: 28%; padding: 18px 22px; justify-content: center; }
+
+  .toggle-panel.toggle-left  { top: 0;    left: 0 !important; transition-delay: 1.2s; }
+  .toggle-panel.toggle-right { right: 0;  bottom: -28%;       transition-delay: .6s;  }
+
+  .authCard.active .toggle-panel.toggle-left  { top: -28%; transition-delay: .6s;  }
+  .authCard.active .toggle-panel.toggle-right { bottom: 0; transition-delay: 1.2s; }
+
+  .cGrid { grid-template-columns: 1fr; }
+  .toggle-panel h1 { font-size: 20px; max-width: none; }
+  .tp-desc { display: none; }
+}
+
+@media screen and (max-width: 400px) {
+  .authCard .form-box { padding: 16px; }
+}
+
+</style>
 </head>
 
 <body class="authPage">
 
-<main class="authShell">
+<!-- Fondos de página (se intercambian al cambiar estado) -->
+<div class="pageBg pageBg--login"></div>
+<div class="pageBg pageBg--register"></div>
 
-<section class="authVisual authVisual--login">
-<div class="authVisual__overlay">
-<p class="authVisual__eyebrow">DYNApaz 87</p>
-<h1 class="authVisual__title">Encuentra, vende y conecta con clientes reales.</h1>
-<p class="authVisual__text">Accede a tu cuenta para ver propiedades, contactar vendedores y gestionar tu perfil.</p>
-<div class="authVisual__metrics">
-<div class="authMetric"><strong>24/7</strong><span>Atención digital</span></div>
-<div class="authMetric"><strong>100%</strong><span>Perfiles visibles</span></div>
+<div class="authCard" id="authCard">
+
+  <!-- ══ INICIAR SESIÓN ══ -->
+  <div class="form-box login">
+    <form onsubmit="event.preventDefault(); login();">
+      <h1>Iniciar sesión</h1>
+      <p class="authIntro">Accede con tu cuenta</p>
+      <p class="authKicker">Panel privado para compradores, vendedores y administración.</p>
+      <p id="authFeedback" class="feedback" hidden></p>
+      <input class="cInput" id="loginEmail" type="email"    placeholder="Correo (gmail o hotmail)" required>
+      <div class="passWrap">
+        <input class="cInput" id="loginPass" type="password" placeholder="Contraseña" required>
+        <button type="button" class="eyeBtn" onclick="togglePass('loginPass',this)" aria-label="Ver contraseña">
+          <svg id="eye-loginPass" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="forgotLink">
+        <button type="button" onclick="olvidasteContrasena()">¿Olvidaste la contraseña?</button>
+      </div>
+      <button type="submit" class="cBtn">Entrar</button>
+      <div class="authLinks">
+        <p>¿No tienes cuenta?</p>
+        <button type="button" id="toRegister">Registrarse</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ══ CREAR CUENTA ══ -->
+  <div class="form-box register">
+    <form onsubmit="event.preventDefault(); register();">
+      <h1>Crear cuenta</h1>
+      <p class="authIntro">Registra tus datos para entrar al sistema sin configuraciones extra.</p>
+      <p class="authKicker">Completa tus datos una sola vez para usar todo el sistema.</p>
+      <p id="regFeedback" class="feedback" hidden></p>
+      <div class="cGrid">
+        <input class="cInput" id="nombre"         type="text"  placeholder="Nombre"               required>
+        <input class="cInput" id="apellido"        type="text"  placeholder="Apellido"             required>
+        <input class="cInput" id="ci"              type="text"  placeholder="CI"                   required>
+        <input class="cInput" id="telefono"        type="tel"   placeholder="Teléfono"             required>
+        <input class="cInput" id="fechaNacimiento" type="date"                                      required>
+        <input class="cInput" id="correo"          type="email" placeholder="Correo Gmail o Hotmail" required>
+      </div>
+      <textarea class="cInput" id="direccion" placeholder="Dirección" required></textarea>
+      <div class="passWrap">
+        <input class="cInput" id="password" type="password" placeholder="Contraseña" required>
+        <button type="button" class="eyeBtn" onclick="togglePass('password',this)" aria-label="Ver contraseña">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <button type="submit" class="cBtn">Registrarse</button>
+      <div class="authLinks">
+        <button type="button" id="toLogin">← Volver al login</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ══ TOGGLE BOX ══ -->
+  <div class="toggle-box">
+
+    <!-- Panel izquierdo — estado login -->
+    <div class="toggle-panel toggle-left">
+      <p class="tp-eye">Dynasty</p>
+      <h1>Encuentra, vende y conecta con clientes reales.</h1>
+      <p class="tp-desc">Accede a tu cuenta para ver propiedades, contactar vendedores y gestionar tu perfil.</p>
+      <button class="tpBtn" id="toRegisterPanel">Registrarse</button>
+    </div>
+
+    <!-- Panel derecho — estado registro -->
+    <div class="toggle-panel toggle-right">
+      <p class="tp-eye">Registro</p>
+      <h1>Crea tu cuenta y empieza a publicar inmuebles.</h1>
+      <button class="tpBtn" id="toLoginPanel">Iniciar sesión</button>
+    </div>
+
+  </div>
+
 </div>
-</div>
-</section>
-
-<section class="authBox authBox--split">
-
-<p id="authFeedback" class="feedback" hidden></p>
-
-<h2>Iniciar sesión</h2>
-
-<p class="authIntro">Accede con tu cuenta </p>
-
-<p class="authKicker">Panel privado para compradores, vendedores y administración.</p>
-
-<input id="correo" type="email" placeholder="Correo (gmail o hotmail)">
-<input id="password" type="password" placeholder="Contraseña">
-
-<button onclick="login()">Entrar</button>
-
-<div class="authMetaStrip">
-<span>Acceso seguro</span>
-<span>Sesión personal</span>
-<span>Contacto directo</span>
-</div>
-
-<div class="authLinks">
-<p>No tienes cuenta?</p>
-<a href="registro.html">Registrarse</a>
-</div>
-
-</section>
-
-</main>
 
 <script src="./js/auth.js"></script>
+<script>
+  const _card = document.getElementById('authCard');
+
+  function activarRegistro() {
+    _card.classList.add('active');
+    document.body.classList.add('show-register');
+  }
+
+  function activarLogin() {
+    _card.classList.remove('active');
+    document.body.classList.remove('show-register');
+  }
+
+  document.getElementById('toRegister').addEventListener('click', activarRegistro);
+  document.getElementById('toRegisterPanel').addEventListener('click', activarRegistro);
+  document.getElementById('toLogin').addEventListener('click', activarLogin);
+  document.getElementById('toLoginPanel').addEventListener('click', activarLogin);
+
+  const SVG_EYE     = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const SVG_EYE_OFF = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+  function togglePass(id, btn) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const visible = input.type === 'text';
+    input.type = visible ? 'password' : 'text';
+    btn.innerHTML = visible ? SVG_EYE : SVG_EYE_OFF;
+  }
+
+  function olvidasteContrasena() {
+    const correo = document.getElementById('loginEmail')?.value?.trim();
+    if (!correo) {
+      alert('Ingresa tu correo primero y luego haz clic en ¿Olvidaste la contraseña?');
+      return;
+    }
+    alert('Se ha enviado un enlace de recuperación a: ' + correo + '\n\n(Función en desarrollo — contacta al administrador si necesitas restablecer tu contraseña.)');
+  }
+</script>
 
 </body>
 </html>

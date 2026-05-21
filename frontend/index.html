@@ -6,7 +6,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>DYNApaz 87</title>
+<title>Dynasty87</title>
+<link rel="icon" href="./assets/LOGO.png" type="image/png">
 
 <link rel="stylesheet" href="./css/style.css">
 
@@ -21,41 +22,23 @@ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 
 <header class="topbar">
 
-<div class="topbar__brand">
+  <div class="topbar__left">
+    <img class="topbar__logo" src="./assets/LOGO.png" alt="Logo DYNASTY87">
+    <div class="topbar__brandText">
+      <h1 class="brand__title">DYNASTY<span class="brand__num">87</span></h1>
+      <p class="brand__tag">Inmuebles en La Paz</p>
+    </div>
+  </div>
 
-<h1 class="brand__title">DYNApaz 87</h1>
+  <nav class="filters">
+    <button class="chip is-active" data-filter="todos">Todos</button>
+    <button class="chip" data-filter="alto">Valor alto</button>
+    <button class="chip" data-filter="medio">Valor medio</button>
+    <button class="chip" data-filter="economico">Valor económico</button>
+    <button class="chip" data-filter="nuevas">Nuevas</button>
+  </nav>
 
-</div>
-
-<div class="topbar__logoWrap">
-<img class="topbar__logo" src="./assets/LOGO.png" alt="Logo de DYNApaz 87">
-</div>
-
-<div id="userSession" class="sessionCard"></div>
-
-<nav class="filters">
-
-<button class="chip is-active" data-filter="todos">
-Todos
-</button>
-
-<button class="chip" data-filter="alto">
-Valor alto
-</button>
-
-<button class="chip" data-filter="medio">
-Valor medio
-</button>
-
-<button class="chip" data-filter="economico">
-Valor económico
-</button>
-
-<button class="chip" data-filter="nuevas">
-Nuevas
-</button>
-
-</nav>
+  <div id="userSession" class="navUser"></div>
 
 </header>
 

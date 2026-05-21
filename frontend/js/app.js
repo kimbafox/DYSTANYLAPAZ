@@ -194,6 +194,21 @@ function renderSessionSummary(){
 
   const interestCount = state.notifications.length;
 
+  if (container.classList.contains("navUser")) {
+    const roleText = state.currentUser.roles.map(roleLabel).join(", ");
+    container.innerHTML = `
+      <div class="navUser__info">
+        <p class="navUser__name">${escapeHtml(state.currentUser.nombre)} ${escapeHtml(state.currentUser.apellido)}</p>
+        <p class="navUser__role">${escapeHtml(roleText)}${interestCount ? ` &nbsp;·&nbsp; ${interestCount} interesados` : ""}</p>
+      </div>
+      <div class="navUser__actions">
+        <button class="navBtn" onclick="window.location.href='./docs/usuario.html'">Mi perfil</button>
+        <button class="navBtn navBtn--danger" onclick="logout()">Salir</button>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = `
     <p class="sessionCard__name">${escapeHtml(state.currentUser.nombre)} ${escapeHtml(state.currentUser.apellido)}</p>
     <p class="sessionCard__mail">${escapeHtml(state.currentUser.correo)}</p>
@@ -564,6 +579,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadDashboardData();
   } catch (error) {
-    alert(error.message || "No se pudo cargar el panel.");
+    console.warn("Error al cargar el panel:", error?.message);
   }
 });
