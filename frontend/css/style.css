@@ -800,6 +800,83 @@ body::before{
   color: rgba(0,0,0,0.62);
 }
 
+/* Previews de imágenes seleccionadas en el formulario de propiedades */
+.imagesPreview{
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.imagesPreview__item{
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #fff;
+}
+.imagesPreview__img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Perfil: avatar y acciones */
+.profileCard--enhanced{
+  padding: 18px;
+}
+.profileCard__top{
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.profileAvatar{
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #e9f7ef, #dff3e6);
+  color: var(--green);
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  border: 2px solid rgba(30,127,79,0.12);
+}
+.profileCard__headInfo{
+  flex: 1 1 auto;
+}
+.profileCard__actions{
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.profileGrid--compact .profileLine{
+  padding: 8px 0;
+}
+.profileSummaryRow{
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.profileLine--muted{
+  color: rgba(0,0,0,0.6);
+  margin-top: 6px;
+}
+
+.ghostAction--disabled{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.04);
+  color: rgba(0,0,0,0.5);
+  font-weight: 700;
+}
+
 .ghostAction,
 .docLinkCard,
 .backLink{

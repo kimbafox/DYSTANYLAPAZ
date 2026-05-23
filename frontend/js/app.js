@@ -10,6 +10,7 @@ const state = {
   notifications: [],
   isPickingLocation: false,
   draftMarker: null,
+  selectedPropertyImages: [],
 };
 
 const INDEX_LAYOUT_STORAGE_KEY = "dynapaz_index_layout";
@@ -144,8 +145,8 @@ function buildProfileActions(user){
     `,
     contactMarkup: `
       <div class="sessionCard__actions profileActionsRow">
-        ${whatsappLink ? `<a class="ghostAction" href="${whatsappLink}" target="_blank" rel="noreferrer">${escapeHtml(buildWhatsappLabel(user))}</a>` : ""}
-        ${user.telefono ? `<a class="ghostAction" href="tel:${escapeHtml(String(user.telefono).replace(/\s+/g, ""))}">Llamar</a>` : ""}
+        ${whatsappLink ? `<a class="ghostAction" href="${whatsappLink}" target="_blank" rel="noreferrer">${escapeHtml(buildWhatsappLabel(user))}</a>` : `<span class="ghostAction ghostAction--disabled">Sin WhatsApp</span>`}
+        ${user.telefono ? `<a class="ghostAction" href="tel:${escapeHtml(String(user.telefono).replace(/\s+/g, ""))}">Llamar</a>` : `<span class="ghostAction ghostAction--disabled">Sin teléfono</span>`}
       </div>
     `,
   };
@@ -162,28 +163,36 @@ function formatDateTime(value){
 
 function profileMarkup(user, options = {}){
   const profileActions = buildProfileActions(user);
+  const initials = `${String(user.nombre || "").charAt(0)}${String(user.apellido || "").charAt(0)}`.toUpperCase();
 
   return `
-    <article class="profileCard">
+    <article class="profileCard profileCard--enhanced">
       <div class="profileCard__top">
-        <div>
+        <div class="profileAvatar" aria-hidden="true">${escapeHtml(initials)}</div>
+        <div class="profileCard__headInfo">
           <h3 class="profileCard__title">${escapeHtml(user.nombre)} ${escapeHtml(user.apellido)}</h3>
-          <p class="profileLine">${escapeHtml(user.correo)}</p>
+          <p class="profileLine profileLine--muted">${escapeHtml(user.correo)}</p>
+          <div class="profileRoles">${rolePills(user.roles)}</div>
         </div>
-        <div class="profileRoles">${rolePills(user.roles)}</div>
+        <div class="profileCard__actions">
+          ${state.currentUser && state.currentUser.id === user.id
+            ? `<button class="cta" onclick="window.alert('Editar perfil - pendiente')">Editar perfil</button>`
+            : `<button class="cta" data-view-user="${user.id}">Ver perfil</button>`}
+          ${options.canDelete ? `<button class="dangerBtn" data-delete-user="${user.id}">Eliminar</button>` : ``}
+        </div>
       </div>
 
-      <div class="profileGrid">
+      <div class="profileGrid profileGrid--compact">
         <div class="profileLine"><strong>CI</strong>${escapeHtml(user.ci)}</div>
         <div class="profileLine"><strong>Teléfono</strong>${escapeHtml(user.telefono)}</div>
         <div class="profileLine"><strong>Dirección</strong>${escapeHtml(user.direccion)}</div>
         <div class="profileLine"><strong>Nacimiento</strong>${escapeHtml(user.fechaNacimiento)}</div>
       </div>
 
-      ${profileActions.summaryMarkup}
-      ${profileActions.contactMarkup}
-
-      ${options.canDelete ? `<div class="sessionCard__actions"><button class="dangerBtn" data-delete-user="${user.id}">Eliminar usuario</button></div>` : ""}
+      <div class="profileSummaryRow">
+        ${profileActions.summaryMarkup}
+        ${profileActions.contactMarkup}
+      </div>
     </article>
   `;
 }
@@ -365,7 +374,7 @@ function renderCards(){
 
     card.innerHTML = `
       <div class="card__top">
-        <img class="card__img" src="${escapeHtml(propertyImages[0])}" alt="${escapeHtml(property.title)}">
+        <img class="card__img" src="${escapeHtml(propertyImages[0])}" alt="${escapeHtml(property.title)}" loading="lazy" decoding="async">
         <div class="badge">${badgeText(property)}</div>
         <div class="carouselControls">
           <button class="iconBtn" data-action="prev" aria-label="Anterior">‹</button>

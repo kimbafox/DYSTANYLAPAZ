@@ -94,6 +94,22 @@ function renderProfiles(){
     .map((user) => profileMarkup(user, { canDelete: isAdmin && user.id !== state.currentUser.id }))
     .join("");
 
+  // Attach handlers for "Ver perfil" buttons to load other users into the profile panel
+  profilesDirectory.querySelectorAll('[data-view-user]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const userId = btn.getAttribute('data-view-user');
+      if (!userId) return;
+      const user = state.users.find((u) => u.id === userId);
+      if (!user) return;
+      const profileContent = document.getElementById('profileContent');
+      if (profileContent) {
+        profileContent.innerHTML = profileMarkup(user);
+        // Scroll to profile section for visibility
+        profileContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
   if (!isAdmin) return;
 
   profilesDirectory.querySelectorAll("[data-delete-user]").forEach((button) => {
@@ -138,7 +154,10 @@ function renderPropertyManager(){
           <input id="propertyZone" type="text" placeholder="Zona" required>
           <input id="propertyPrice" type="number" min="1" placeholder="Precio en bolivianos" required>
           <input id="propertyCoords" type="text" placeholder="Latitud, Longitud" readonly required>
-          <input id="propertyImages" type="text" placeholder="Imagenes separadas por coma" required>
+          <div>
+            <input id="propertyImages" type="file" accept="image/*" multiple required>
+            <div id="propertyImagesPreview" class="imagesPreview" aria-live="polite"></div>
+          </div>
         </div>
         <div class="locationPickerRow">
           <button type="button" id="pickLocationBtn" class="cta">Seleccionar ubicación en el mapa</button>
@@ -206,6 +225,11 @@ function renderPropertyManager(){
     clearLocationBtn.addEventListener("click", () => {
       clearDraftLocation();
     });
+  }
+
+  const imagesInput = document.getElementById('propertyImages');
+  if (imagesInput) {
+    imagesInput.addEventListener('change', handleImageSelection);
   }
 
   manager.querySelectorAll("[data-delete-property]").forEach((button) => {
@@ -300,6 +324,55 @@ function setDraftLocation(coords){
   updateLocationPickerStatus("Ubicación seleccionada. Ya puedes publicar la casa o ajustar la zona manualmente.", "success");
 }
 
+function renderImagePreviews(files){
+  const container = document.getElementById("propertyImagesPreview");
+  if (!container) return;
+  container.innerHTML = "";
+  (files || []).forEach((file) => {
+    const wrap = document.createElement("div");
+    wrap.className = "imagesPreview__item";
+    const img = document.createElement("img");
+    img.className = "imagesPreview__img";
+    img.alt = file.name || "Imagen seleccionada";
+    img.src = URL.createObjectURL(file);
+    img.onload = () => URL.revokeObjectURL(img.src);
+    wrap.appendChild(img);
+    container.appendChild(wrap);
+  });
+}
+
+function handleImageSelection(event){
+  const input = event.currentTarget;
+  const files = Array.from(input.files || []).slice(0, 6);
+  state.selectedPropertyImages = files;
+  renderImagePreviews(files);
+}
+
+function resizeImageFile(file, maxWidth = 1200, quality = 0.75){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Formato de imagen no soportado'));
+      img.onload = () => {
+        const ratio = img.width / img.height;
+        const width = Math.min(img.width, maxWidth);
+        const height = Math.round(width / ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function handlePropertySubmit(event){
   event.preventDefault();
 
@@ -313,10 +386,7 @@ async function handlePropertySubmit(event){
     zone: document.getElementById("propertyZone")?.value || "",
     priceBOB: Number(document.getElementById("propertyPrice")?.value || 0),
     coords,
-    images: String(document.getElementById("propertyImages")?.value || "")
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean),
+    images: [],
     desc: document.getElementById("propertyDesc")?.value || "",
     isNew: true,
   };
@@ -325,6 +395,35 @@ async function handlePropertySubmit(event){
 
   button.disabled = true;
   setPropertyFeedback("");
+
+  // Procesar imágenes seleccionadas (si las hay): redimensionar y convertir a data URLs
+  try {
+    const fileInput = document.getElementById('propertyImages');
+    const files = state.selectedPropertyImages || (fileInput ? Array.from(fileInput.files || []) : []);
+    if (files && files.length) {
+      setPropertyFeedback('Procesando imágenes...', 'pending');
+      const dataUrls = [];
+      for (let i = 0; i < files.length && i < 6; i++) {
+        try {
+          const dataUrl = await resizeImageFile(files[i], 1200, 0.75);
+          dataUrls.push(dataUrl);
+        } catch (err) {
+          console.warn('No se pudo procesar imagen', files[i].name, err);
+        }
+      }
+      payload.images = dataUrls;
+    } else {
+      // Legacy: permitir URLs separadas por coma
+      payload.images = String(document.getElementById("propertyImages")?.value || "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean);
+    }
+  } catch (err) {
+    console.error('Error procesando imágenes', err);
+  } finally {
+    setPropertyFeedback('');
+  }
 
   try {
     await createProperty(payload);
