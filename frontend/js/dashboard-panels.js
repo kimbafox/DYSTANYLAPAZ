@@ -165,7 +165,6 @@ function renderPropertyManager(){
           <input id="propertyTitle" type="text" placeholder="Título de la propiedad" required>
           <input id="propertyZone" type="text" placeholder="Zona" required>
           <input id="propertyPrice" type="number" min="1" placeholder="Precio en bolivianos" required>
-          <input id="propertyCoords" type="text" placeholder="Latitud, Longitud" readonly required>
           <div>
             <input id="propertyImages" type="file" accept="image/*" multiple required>
             <div id="propertyImagesPreview" class="imagesPreview" aria-live="polite"></div>
@@ -175,7 +174,7 @@ function renderPropertyManager(){
           <button type="button" id="pickLocationBtn" class="cta">Seleccionar ubicación en el mapa</button>
           <button type="button" id="clearLocationBtn" class="ghostAction">Limpiar ubicación</button>
         </div>
-        <p id="locationPickerStatus" class="helperText">Haz clic en el botón y luego selecciona el punto exacto de la casa en el mapa.</p>
+        <p id="locationPickerStatus" class="helperText">Haz clic en el botón y selecciona la ubicación en el mapa. La coordenada se guarda automáticamente.</p>
         <p class="helperText helperText--neutral">La categoría de valor se calcula automáticamente según el precio ingresado.</p>
         <textarea id="propertyDesc" placeholder="Descripción" required></textarea>
         <p id="propertyFeedback" class="feedback" hidden></p>
@@ -312,27 +311,20 @@ function updateLocationPickerStatus(message, tone = "neutral"){
 
 function clearDraftLocation(){
   state.isPickingLocation = false;
+  state.draftCoords = null;
   if (state.map) {
     state.map.getContainer().classList.remove("map--picking");
-  }
-
-  const coordsInput = document.getElementById("propertyCoords");
-  if (coordsInput) {
-    coordsInput.value = "";
   }
 
   if (state.draftMarker && state.map) {
     state.map.removeLayer(state.draftMarker);
   }
   state.draftMarker = null;
-  updateLocationPickerStatus("Haz clic en el botón y luego selecciona el punto exacto de la casa en el mapa.", "neutral");
+  updateLocationPickerStatus("Haz clic en el botón y selecciona la ubicación en el mapa. Se guarda automáticamente.", "neutral");
 }
 
 function setDraftLocation(coords){
-  const coordsInput = document.getElementById("propertyCoords");
-  if (coordsInput) {
-    coordsInput.value = `${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
-  }
+  state.draftCoords = coords.map((value) => Number(value));
 
   if (!state.map) return;
 
@@ -344,7 +336,7 @@ function setDraftLocation(coords){
 
   state.map.getContainer().classList.remove("map--picking");
   state.isPickingLocation = false;
-  updateLocationPickerStatus("Ubicación seleccionada. Ya puedes publicar la casa o ajustar la zona manualmente.", "success");
+  updateLocationPickerStatus(`Ubicación fijada: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}. Ya puedes publicar la propiedad.`, "success");
 }
 
 function renderImagePreviews(files){
@@ -400,9 +392,14 @@ async function handlePropertySubmit(event){
   event.preventDefault();
 
   const button = event.currentTarget.querySelector("button[type='submit']");
-  const coords = String(document.getElementById("propertyCoords")?.value || "")
-    .split(",")
-    .map((value) => Number(value.trim()));
+  const coords = Array.isArray(state.draftCoords) && state.draftCoords.length === 2
+    ? state.draftCoords.map((value) => Number(value))
+    : [];
+
+  if (!coords.length || coords.some((value) => !Number.isFinite(value))) {
+    setPropertyFeedback("Selecciona la ubicación en el mapa antes de publicar la propiedad.");
+    return;
+  }
 
   const payload = {
     title: document.getElementById("propertyTitle")?.value || "",

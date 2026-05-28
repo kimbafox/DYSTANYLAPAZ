@@ -10,6 +10,7 @@ const state = {
   notifications: [],
   isPickingLocation: false,
   draftMarker: null,
+  draftCoords: null,
   selectedPropertyImages: [],
 };
 
