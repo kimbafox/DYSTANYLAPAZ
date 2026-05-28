@@ -123,9 +123,9 @@ function renderProfiles(){
       try {
         await eliminarUsuario(userId);
         await loadDashboardData();
-        alert("Usuario eliminado.");
+        setPropertyFeedback("Usuario eliminado correctamente.", "success");
       } catch (error) {
-        alert(error.message || "No se pudo eliminar el usuario.");
+        setPropertyFeedback(error.message || "No se pudo eliminar el usuario.");
       }
     });
   });
@@ -242,11 +242,12 @@ function renderPropertyManager(){
 
       try {
         await deleteProperty(propertyId);
+        setPropertyFeedback("Propiedad eliminada correctamente.", "success");
         await loadProperties();
         renderPropertyManager();
         renderCards();
       } catch (error) {
-        alert(error.message || "No se pudo eliminar la propiedad.");
+        setPropertyFeedback(error.message || "No se pudo eliminar la propiedad.");
       }
     });
   });
@@ -259,12 +260,13 @@ function renderPropertyManager(){
 
       try {
         await updatePropertyStatus(propertyId, nextStatus);
+        setPropertyFeedback("Estado actualizado correctamente.", "success");
         await loadProperties();
         renderPropertyManager();
         renderProfiles();
         renderCards();
       } catch (error) {
-        alert(error.message || "No se pudo actualizar el estado de la propiedad.");
+        setPropertyFeedback(error.message || "No se pudo actualizar el estado de la propiedad.");
       }
     });
   });

@@ -40,6 +40,15 @@ function escapeHtml(value){
     .replace(/'/g, "&#39;");
 }
 
+function setAppFeedback(message, type = "error"){
+  const feedback = document.getElementById("appFeedback");
+  if (!feedback) return;
+
+  feedback.hidden = !message;
+  feedback.textContent = message;
+  feedback.className = `feedback feedback--${type}`;
+}
+
 function getPropertyImages(property){
   const images = Array.isArray(property?.images)
     ? property.images.map((image) => String(image || "").trim()).filter(Boolean)
@@ -96,6 +105,117 @@ function canDeleteProperty(property){
 
 function canExpressInterest(property){
   return Boolean(state.currentUser && property.ownerId !== state.currentUser.id && property.status !== "vendida");
+}
+
+function buildPropertyMessage(property){
+  return `Hola, me interesa la propiedad "${property.title}" en ${property.zone}. ¿Podrías darme más información? Precio: ${moneyBOB(property.priceBOB)}.`;
+}
+
+function getPropertyContactLink(property){
+  if (property.ownerWhatsappLink) return property.ownerWhatsappLink;
+
+  if (property.ownerPhone) {
+    const phone = String(property.ownerPhone).replace(/\D/g, "");
+    return `https://wa.me/591${phone}?text=${encodeURIComponent(buildPropertyMessage(property))}`;
+  }
+
+  return "";
+}
+
+function openPropertyModal(property){
+  const modal = document.getElementById("propertyModal");
+  if (!modal) return;
+
+  const propertyImages = getPropertyImages(property);
+  let current = 0;
+
+  const renderPreview = () => {
+    const bullets = propertyImages
+      .map((_, index) => `<button class="propertyModal__dot ${index === current ? "is-active" : ""}" type="button" data-slide="${index}" aria-label="Ir a la imagen ${index + 1}"></button>`)
+      .join("");
+
+    modal.innerHTML = `
+      <div class="propertyModal__backdrop" data-close-modal="true"></div>
+      <article class="propertyModal__sheet" role="dialog" aria-modal="true" aria-label="Detalle de la propiedad">
+        <button class="propertyModal__close" type="button" data-close-modal="true" aria-label="Cerrar vista de propiedad">×</button>
+        <div class="propertyModal__media">
+          <img class="propertyModal__image" src="${escapeHtml(propertyImages[current])}" alt="${escapeHtml(property.title)}" loading="eager">
+          <div class="propertyModal__controls">
+            <button class="iconBtn" type="button" data-action="prev-image" aria-label="Imagen anterior">‹</button>
+            <button class="iconBtn" type="button" data-action="next-image" aria-label="Imagen siguiente">›</button>
+          </div>
+          <div class="propertyModal__dots">${bullets}</div>
+        </div>
+        <div class="propertyModal__content">
+          <p class="badge">${badgeText(property)}</p>
+          <h3 class="card__title">${escapeHtml(property.title)}</h3>
+          <p class="card__meta">${escapeHtml(property.zone)} • ${escapeHtml(property.ownerName)}</p>
+          <p class="price">${moneyBOB(property.priceBOB)}</p>
+          <p class="card__description">${escapeHtml(property.desc || "Sin descripción disponible.")}</p>
+          <div class="sellerPanel">
+            <div class="sellerPanel__head"><strong>${escapeHtml(property.ownerSummary?.nombreCompleto || property.ownerName)}</strong><span>${escapeHtml(property.ownerPhone || "Sin teléfono")}</span></div>
+            <div class="sellerPanel__stats"><span>${Number(property.ownerSummary?.publishedCount || 0)} publicadas</span><span>${Number(property.ownerSummary?.soldCount || 0)} vendidas</span></div>
+          </div>
+          <div class="cardActions">
+            ${canExpressInterest(property) ? `<button class="cta" type="button" data-action="interest-modal">Me interesa</button>` : ""}
+            ${getPropertyContactLink(property) ? `<a class="ghostAction" href="${getPropertyContactLink(property)}" target="_blank" rel="noreferrer">Enviar mensaje</a>` : ""}
+          </div>
+        </div>
+      </article>
+    `;
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+
+    modal.querySelector("[data-action='prev-image']")?.addEventListener("click", () => {
+      current = (current - 1 + propertyImages.length) % propertyImages.length;
+      renderPreview();
+    });
+
+    modal.querySelector("[data-action='next-image']")?.addEventListener("click", () => {
+      current = (current + 1) % propertyImages.length;
+      renderPreview();
+    });
+
+    modal.querySelectorAll("[data-slide]").forEach((dot) => {
+      dot.addEventListener("click", () => {
+        current = Number(dot.dataset.slide || 0);
+        renderPreview();
+      });
+    });
+
+    modal.querySelectorAll("[data-close-modal]").forEach((control) => {
+      control.addEventListener("click", closePropertyModal);
+    });
+
+    modal.querySelector("[data-action='interest-modal']")?.addEventListener("click", async () => {
+      const button = modal.querySelector("[data-action='interest-modal']");
+      if (!button || !canExpressInterest(property)) return;
+
+      button.disabled = true;
+      try {
+        await registerInterest(property.id);
+        setAppFeedback(`Tu interés fue enviado al propietario de ${property.title}.`, "success");
+        button.textContent = "Interés enviado";
+        window.setTimeout(closePropertyModal, 900);
+      } catch (error) {
+        setAppFeedback(error.message || "No se pudo registrar tu interés.");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  };
+
+  renderPreview();
+}
+
+function closePropertyModal(){
+  const modal = document.getElementById("propertyModal");
+  if (!modal) return;
+
+  modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
+  modal.innerHTML = "";
 }
 
 function inferPropertyCategory(priceBOB){
@@ -405,6 +525,7 @@ function renderCards(){
           <div class="cardActions">
             ${property.ownerWhatsappLink ? `<a class="ghostAction" href="${property.ownerWhatsappLink}" target="_blank" rel="noreferrer">Contactar por WhatsApp</a>` : ""}
             ${property.ownerPhone ? `<a class="ghostAction" href="tel:${escapeHtml(String(property.ownerPhone).replace(/\s+/g, ""))}">Llamar</a>` : ""}
+            <button class="ghostAction" type="button" data-action="details">Ver detalles</button>
           </div>
           ${(property.ownerSummary?.soldProperties || []).length ? `
             <div class="soldProperties soldProperties--compact">
@@ -417,6 +538,7 @@ function renderCards(){
           <div class="price">${moneyBOB(property.priceBOB)}</div>
           <div class="cardActions">
             ${canExpressInterest(property) ? '<button class="cta" data-action="interest">Me interesa</button>' : ""}
+            <button class="ghostAction" type="button" data-action="details">Ver detalles</button>
           </div>
         </div>
         ${property.status === "vendida" ? '<div class="emptyState">Esta casa ya fue vendida. Usa WhatsApp o teléfono para consultar otras opciones del mismo vendedor.</div>' : ""}
@@ -446,6 +568,13 @@ function renderCards(){
       setImg();
     });
 
+    card.querySelectorAll('[data-action="details"]').forEach((detailsBtn) => {
+      detailsBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openPropertyModal(property);
+      });
+    });
+
     const interestBtn = card.querySelector('[data-action="interest"]');
     if (interestBtn) {
       interestBtn.addEventListener("click", async (event) => {
@@ -454,9 +583,9 @@ function renderCards(){
 
         try {
           await registerInterest(property.id);
-          alert(`Tu interés fue enviado al propietario de ${property.title}.`);
+          setAppFeedback(`Tu interés fue enviado al propietario de ${property.title}.`, "success");
         } catch (error) {
-          alert(error.message || "No se pudo registrar tu interés.");
+          setAppFeedback(error.message || "No se pudo registrar tu interés.");
         } finally {
           interestBtn.disabled = false;
         }
@@ -472,11 +601,12 @@ function renderCards(){
 
         try {
           await deleteProperty(property.id);
+          setAppFeedback("La propiedad se eliminó correctamente.", "success");
           await loadProperties();
           renderPropertyManager();
           renderCards();
         } catch (error) {
-          alert(error.message || "No se pudo eliminar la propiedad.");
+          setAppFeedback(error.message || "No se pudo eliminar la propiedad.");
         }
       });
     }
