@@ -71,6 +71,16 @@ function renderProfiles(){
   const profilesTitle = document.getElementById("profilesTitle");
   const profilesHint = document.getElementById("profilesHint");
 
+  const rankedUsers = [...state.users].sort((left, right) => {
+    const leftSeller = tieneRol(left, "vendedor") ? 1 : 0;
+    const rightSeller = tieneRol(right, "vendedor") ? 1 : 0;
+    if (leftSeller !== rightSeller) return rightSeller - leftSeller;
+
+    const leftSold = getUserPropertySummary(left.id).soldCount;
+    const rightSold = getUserPropertySummary(right.id).soldCount;
+    return rightSold - leftSold;
+  });
+
   if (!state.currentUser) return;
 
   if (profileContent) {
@@ -83,14 +93,16 @@ function renderProfiles(){
   }
 
   if (profilesHint) {
+    const sellerCount = state.users.filter((user) => tieneRol(user, "vendedor")).length;
+    const soldCount = state.properties.filter((property) => property.status === "vendida").length;
     profilesHint.textContent = isAdmin
-      ? "Revisa cuentas y elimina solo cuando sea necesario."
-      : "Directorio visible del sistema.";
+      ? `Directorio de vendedores y cuentas registradas. Hay ${sellerCount} vendedores activos y ${soldCount} propiedades vendidas.`
+      : `Directorio visible del sistema con vendedores destacados, ventas registradas y perfiles actualizados.`;
   }
 
   if (!profilesDirectory) return;
 
-  profilesDirectory.innerHTML = state.users
+  profilesDirectory.innerHTML = rankedUsers
     .map((user) => profileMarkup(user, { canDelete: isAdmin && user.id !== state.currentUser.id }))
     .join("");
 
@@ -176,29 +188,38 @@ function renderPropertyManager(){
     <div class="managedProperties">
       <h3 class="subTitle">${canManageProperties() ? "Mis propiedades" : "Propiedades visibles"}</h3>
       ${listedProperties.length
-        ? listedProperties.map((property) => `
-          <article class="profileCard">
-            <div class="profileCard__top">
-              <div>
-                <h3 class="profileCard__title">${escapeHtml(property.title)}</h3>
-                <p class="profileLine">${escapeHtml(property.zone)}</p>
-              </div>
-              <div class="profileRoles">${propertyPills(property)}</div>
-            </div>
-            <div class="profileGrid">
-              <div class="profileLine"><strong>Precio</strong>${moneyBOB(property.priceBOB)}</div>
-              <div class="profileLine"><strong>Publicado por</strong>${escapeHtml(property.ownerName)}</div>
-              <div class="profileLine"><strong>Estado</strong>${property.status === "vendida" ? "Vendida" : "Disponible"}</div>
-              <div class="profileLine"><strong>Contacto</strong>${escapeHtml(property.ownerPhone || "Sin teléfono")}</div>
-            </div>
-            ${canDeleteProperty(property) ? `
-              <div class="sessionCard__actions">
-                <button class="ghostAction" data-toggle-property-status="${property.id}" data-next-status="${property.status === "vendida" ? "disponible" : "vendida"}">${property.status === "vendida" ? "Marcar disponible" : "Marcar vendida"}</button>
-                <button class="dangerBtn" data-delete-property="${property.id}">Eliminar propiedad</button>
-              </div>
-            ` : ""}
-          </article>
-        `).join("")
+        ? listedProperties.map((property) => {
+            const propertyImages = getPropertyImages(property);
+            return `
+              <article class="profileCard propertyCard--featured">
+                <div class="propertyCard__media">
+                  <img class="propertyCard__thumb" src="${escapeHtml(propertyImages[0])}" alt="${escapeHtml(property.title)}" loading="lazy" decoding="async">
+                </div>
+                <div class="propertyCard__content">
+                  <div class="profileCard__top propertyCard__top--stacked">
+                    <div>
+                      <h3 class="profileCard__title">${escapeHtml(property.title)}</h3>
+                      <p class="profileLine">${escapeHtml(property.zone)}</p>
+                    </div>
+                    <div class="profileRoles">${propertyPills(property)}</div>
+                  </div>
+                  <div class="profileGrid">
+                    <div class="profileLine"><strong>Precio</strong>${moneyBOB(property.priceBOB)}</div>
+                    <div class="profileLine"><strong>Publicado por</strong>${escapeHtml(property.ownerName)}</div>
+                    <div class="profileLine"><strong>Estado</strong>${property.status === "vendida" ? "Vendida" : "Disponible"}</div>
+                    <div class="profileLine"><strong>Contacto</strong>${escapeHtml(property.ownerPhone || "Sin teléfono")}</div>
+                  </div>
+                  <p class="propertyCard__hint">${escapeHtml(property.desc || "Sin descripción adicional.")}</p>
+                  ${canDeleteProperty(property) ? `
+                    <div class="sessionCard__actions">
+                      <button class="ghostAction" data-toggle-property-status="${property.id}" data-next-status="${property.status === "vendida" ? "disponible" : "vendida"}">${property.status === "vendida" ? "Marcar disponible" : "Marcar vendida"}</button>
+                      <button class="dangerBtn" data-delete-property="${property.id}">Eliminar propiedad</button>
+                    </div>
+                  ` : ""}
+                </div>
+              </article>
+            `;
+          }).join("")
         : `<div class="emptyState">No tienes propiedades administrables todavía.</div>`}
     </div>
   `;

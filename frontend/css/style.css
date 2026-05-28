@@ -802,12 +802,50 @@ body::before{
   margin-top: 14px;
 }
 
+.propertyCard--featured{
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.propertyCard__media{
+  min-height: 130px;
+}
+
+.propertyCard__thumb{
+  width: 100%;
+  height: 100%;
+  min-height: 130px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(30,127,79,0.12);
+}
+
+.propertyCard__content{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.propertyCard__hint{
+  margin: 0;
+  color: rgba(0,0,0,0.68);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .profileCard__top{
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.propertyCard__top--stacked{
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .profileCard__title{
@@ -1617,6 +1655,15 @@ body::before{
 }
 
 @media (max-width: 720px){
+  .propertyCard--featured{
+    grid-template-columns: 1fr;
+  }
+
+  .propertyCard__thumb,
+  .propertyCard__media{
+    min-height: 170px;
+  }
+
   .docsHero{
     flex-direction: column;
   }

@@ -38,17 +38,17 @@
 <p id="authFeedback" class="feedback" hidden></p>
 
 <div class="authGrid">
-<input id="nombre" type="text" placeholder="Nombre">
-<input id="apellido" type="text" placeholder="Apellido">
-<input id="ci" type="text" placeholder="CI">
-<input id="telefono" type="tel" placeholder="Teléfono">
-<input id="fechaNacimiento" type="date">
-<input id="correo" type="email" placeholder="Correo Gmail o Hotmail">
+<input id="nombre" type="text" placeholder="Nombre" autocomplete="given-name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" oninput="this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,'')" required>
+<input id="apellido" type="text" placeholder="Apellido" autocomplete="family-name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" oninput="this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,'')" required>
+<input id="ci" type="text" placeholder="CI" autocomplete="off" pattern="[A-Za-z0-9-]{5,20}" maxlength="20" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')" required>
+<input id="telefono" type="tel" inputmode="numeric" placeholder="Teléfono" autocomplete="tel" pattern="[0-9]{7,8}" maxlength="8" oninput="this.value=this.value.replace(/\D/g,'').slice(0,8)" required>
+<input id="fechaNacimiento" type="date" required>
+<input id="correo" type="email" inputmode="email" placeholder="Correo Gmail o Hotmail" autocomplete="email" required>
 </div>
 
-<textarea id="direccion" placeholder="Dirección"></textarea>
+<textarea id="direccion" placeholder="Dirección" minlength="5" required></textarea>
 
-<input id="password" type="password" placeholder="Contraseña">
+<input id="password" type="password" placeholder="Contraseña" minlength="6" autocomplete="new-password" required>
 
 <button onclick="register()">Registrarse</button>
 

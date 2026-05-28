@@ -314,6 +314,10 @@ function validarCorreo(correo){
 	return regex.test(String(correo || "").trim().toLowerCase());
 }
 
+function normalizarTexto(texto){
+	return String(texto || "").trim().replace(/\s+/g, " ");
+}
+
 function normalizarCorreo(correo){
 	return String(correo || "").trim().toLowerCase();
 }
@@ -380,8 +384,17 @@ function obtenerDatosFormularioRegistro(){
 }
 
 function validarRegistro(data){
-	if (!data.nombre || !data.apellido) {
+	const nombre = normalizarTexto(data.nombre);
+	const apellido = normalizarTexto(data.apellido);
+	const telefono = String(data.telefono || "").replace(/\D/g, "");
+	const ci = String(data.ci || "").trim().toUpperCase();
+
+	if (!nombre || !apellido) {
 		return "Ingresa nombre y apellido.";
+	}
+
+	if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(nombre) || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(apellido)) {
+		return "Nombre y apellido solo pueden contener letras y espacios.";
 	}
 
 	if (!validarCorreo(data.correo)) {
@@ -392,11 +405,58 @@ function validarRegistro(data){
 		return "La contraseña debe tener al menos 6 caracteres.";
 	}
 
-	if (!data.ci || !data.telefono || !data.direccion || !data.fechaNacimiento) {
-		return "Completa todos los datos personales.";
+	if (!/[A-Za-z]/.test(data.password) || !/\d/.test(data.password)) {
+		return "La contraseña debe incluir letras y números.";
+	}
+
+	if (!telefono || !/^\d{7,8}$/.test(telefono)) {
+		return "El teléfono debe tener entre 7 y 8 dígitos numéricos.";
+	}
+
+	if (!ci || !/^[A-Z0-9-]{5,20}$/.test(ci)) {
+		return "La CI solo puede tener letras, números y guiones.";
+	}
+
+	if (!data.direccion || String(data.direccion).trim().length < 5) {
+		return "La dirección debe tener al menos 5 caracteres.";
+	}
+
+	if (!data.fechaNacimiento) {
+		return "Selecciona tu fecha de nacimiento.";
 	}
 
 	return "";
+}
+
+function generarContrasenaTemporal(){
+	return `Reset${Math.floor(1000 + Math.random() * 9000)}`;
+}
+
+function recuperarContrasena(correo){
+	const correoNorm = normalizarCorreo(correo);
+	if (!validarCorreo(correoNorm)) {
+		setAuthFeedback("Ingresa un correo Gmail o Hotmail válido para recuperar tu contraseña.");
+		return false;
+	}
+
+	try {
+		initPrototypeStorage();
+		const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || "[]");
+		const found = users.find((user) => normalizarCorreo(user.correo) === correoNorm);
+		if (!found) {
+			setAuthFeedback("No encontramos una cuenta con ese correo.");
+			return false;
+		}
+
+		const temporal = generarContrasenaTemporal();
+		found.password = temporal;
+		localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+		setAuthFeedback(`Contraseña temporal asignada: ${temporal}. Inicia sesión y cámbiala después.`, "success");
+		return true;
+	} catch (error) {
+		setAuthFeedback(error.message || "No se pudo recuperar la contraseña.");
+		return false;
+	}
 }
 
 async function getCurrentUser(force = false){
@@ -733,6 +793,7 @@ async function requireAuth(){
 }
 
 window.validarCorreo = validarCorreo;
+window.recuperarContrasena = recuperarContrasena;
 window.login = login;
 window.register = register;
 window.logout = logout;

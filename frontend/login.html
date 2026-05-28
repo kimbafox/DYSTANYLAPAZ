@@ -445,7 +445,7 @@ textarea.cInput {
       <p class="authIntro">Accede con tu cuenta</p>
       <p class="authKicker">Panel privado para compradores, vendedores y administración.</p>
       <p id="authFeedback" class="feedback" hidden></p>
-      <input class="cInput" id="loginEmail" type="email"    placeholder="Correo (gmail o hotmail)" required>
+      <input class="cInput" id="loginEmail" type="email" inputmode="email" placeholder="Correo (gmail o hotmail)" autocomplete="email" required>
       <div class="passWrap">
         <input class="cInput" id="loginPass" type="password" placeholder="Contraseña" required>
         <button type="button" class="eyeBtn" onclick="togglePass('loginPass',this)" aria-label="Ver contraseña">
@@ -471,16 +471,16 @@ textarea.cInput {
       <p class="authKicker">Completa tus datos una sola vez para usar todo el sistema.</p>
       <p id="regFeedback" class="feedback" hidden></p>
       <div class="cGrid">
-        <input class="cInput" id="nombre"         type="text"  placeholder="Nombre"               required>
-        <input class="cInput" id="apellido"        type="text"  placeholder="Apellido"             required>
-        <input class="cInput" id="ci"              type="text"  placeholder="CI"                   required>
-        <input class="cInput" id="telefono"        type="tel"   placeholder="Teléfono"             required>
-        <input class="cInput" id="fechaNacimiento" type="date"                                      required>
-        <input class="cInput" id="correo"          type="email" placeholder="Correo Gmail o Hotmail" required>
+        <input class="cInput" id="nombre" type="text" placeholder="Nombre" autocomplete="given-name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" oninput="this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,'')" required>
+        <input class="cInput" id="apellido" type="text" placeholder="Apellido" autocomplete="family-name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" oninput="this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,'')" required>
+        <input class="cInput" id="ci" type="text" placeholder="CI" autocomplete="off" pattern="[A-Za-z0-9-]{5,20}" maxlength="20" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')" required>
+        <input class="cInput" id="telefono" type="tel" inputmode="numeric" placeholder="Teléfono" autocomplete="tel" pattern="[0-9]{7,8}" maxlength="8" oninput="this.value=this.value.replace(/\D/g,'').slice(0,8)" required>
+        <input class="cInput" id="fechaNacimiento" type="date" max="2100-12-31" required>
+        <input class="cInput" id="correo" type="email" inputmode="email" placeholder="Correo Gmail o Hotmail" autocomplete="email" required>
       </div>
-      <textarea class="cInput" id="direccion" placeholder="Dirección" required></textarea>
+      <textarea class="cInput" id="direccion" placeholder="Dirección" minlength="5" required></textarea>
       <div class="passWrap">
-        <input class="cInput" id="password" type="password" placeholder="Contraseña" required>
+        <input class="cInput" id="password" type="password" placeholder="Contraseña" minlength="6" autocomplete="new-password" required>
         <button type="button" class="eyeBtn" onclick="togglePass('password',this)" aria-label="Ver contraseña">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -550,7 +550,13 @@ textarea.cInput {
       alert('Ingresa tu correo primero y luego haz clic en ¿Olvidaste la contraseña?');
       return;
     }
-    alert('Se ha enviado un enlace de recuperación a: ' + correo + '\n\n(Función en desarrollo — contacta al administrador si necesitas restablecer tu contraseña.)');
+
+    if (typeof window.recuperarContrasena === 'function') {
+      window.recuperarContrasena(correo);
+      return;
+    }
+
+    alert('La función de recuperación no está disponible en este momento.');
   }
 </script>
 
