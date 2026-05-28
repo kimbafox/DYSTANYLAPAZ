@@ -448,6 +448,12 @@ function recuperarContrasena(correo){
 			return false;
 		}
 
+		const respuesta = window.prompt("Para seguridad, confirma tu dirección registrada para verificar tu identidad:", "");
+		if (!respuesta || normalizarTexto(found.direccion) !== normalizarTexto(respuesta)) {
+			setAuthFeedback("La respuesta de seguridad no coincide con tu perfil. No se cambió la contraseña.");
+			return false;
+		}
+
 		const temporal = generarContrasenaTemporal();
 		found.password = temporal;
 		localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));

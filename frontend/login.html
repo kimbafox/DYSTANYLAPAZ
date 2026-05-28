@@ -30,8 +30,8 @@ body.authPage {
   inset: -16px;
   background-size: cover;
   background-position: center;
-  filter: blur(14px);
-  transition: opacity 1s ease;
+  filter: blur(8px);
+  transition: opacity 0.35s ease;
   z-index: 0;
 }
 
@@ -73,7 +73,7 @@ body.show-register .pageBg--register { opacity: 1; }
   padding: 40px 50px;
   z-index: 1;
   overflow-y: auto;
-  transition: .6s ease-in-out 1.2s, visibility 0s 1s;
+  transition: .25s ease-in-out 0.08s, visibility 0s 0.08s;
 }
 
 .authCard.active .form-box { right: 50%; }
@@ -277,7 +277,7 @@ textarea.cInput {
   background: linear-gradient(155deg, #0c2518 0%, #175235 50%, #1e6644 100%);
   border-radius: 150px;
   z-index: 2;
-  transition: 1.8s ease-in-out;
+  transition: 0.45s ease-in-out;
 }
 
 .authCard.active .toggle-box::before { left: 50%; }
@@ -294,7 +294,7 @@ textarea.cInput {
   padding: 48px 44px;
   z-index: 3;
   pointer-events: auto;
-  transition: .6s ease-in-out;
+  transition: .28s ease-in-out;
 }
 
 /* FORZAR texto blanco en paneles oscuros */
@@ -357,11 +357,11 @@ textarea.cInput {
 }
 
 /* Posiciones (igual que el plugin original) */
-.toggle-panel.toggle-left  { left: 0;     transition-delay: 1.2s; }
-.toggle-panel.toggle-right { right: -50%; transition-delay: .6s;  }
+.toggle-panel.toggle-left  { left: 0;     transition-delay: 0.08s; }
+.toggle-panel.toggle-right { right: -50%; transition-delay: 0.02s;  }
 
-.authCard.active .toggle-panel.toggle-left  { left: -50%; transition-delay: .6s;  }
-.authCard.active .toggle-panel.toggle-right { right: 0;   transition-delay: 1.2s; }
+.authCard.active .toggle-panel.toggle-left  { left: -50%; transition-delay: 0.02s;  }
+.authCard.active .toggle-panel.toggle-right { right: 0;   transition-delay: 0.08s; }
 
 /* ── Responsive ─────────────────────────── */
 @media screen and (max-width: 650px) {
@@ -412,11 +412,11 @@ textarea.cInput {
 
   .toggle-panel { width: 100%; height: 28%; padding: 18px 22px; justify-content: center; }
 
-  .toggle-panel.toggle-left  { top: 0;    left: 0 !important; transition-delay: 1.2s; }
-  .toggle-panel.toggle-right { right: 0;  bottom: -28%;       transition-delay: .6s;  }
+  .toggle-panel.toggle-left  { top: 0;    left: 0 !important; transition-delay: 0.08s; }
+  .toggle-panel.toggle-right { right: 0;  bottom: -28%;       transition-delay: 0.02s;  }
 
-  .authCard.active .toggle-panel.toggle-left  { top: -28%; transition-delay: .6s;  }
-  .authCard.active .toggle-panel.toggle-right { bottom: 0; transition-delay: 1.2s; }
+  .authCard.active .toggle-panel.toggle-left  { top: -28%; transition-delay: 0.02s;  }
+  .authCard.active .toggle-panel.toggle-right { bottom: 0; transition-delay: 0.08s; }
 
   .cGrid { grid-template-columns: 1fr; }
   .toggle-panel h1 { font-size: 20px; max-width: none; }
@@ -454,6 +454,7 @@ textarea.cInput {
       </div>
       <div class="forgotLink">
         <button type="button" onclick="olvidasteContrasena()">¿Olvidaste la contraseña?</button>
+        <small style="display:block; color:#5f6b66; font-size:11px; margin-top:4px;">Te preguntaremos algo de tu perfil para verificar la cuenta.</small>
       </div>
       <button type="submit" class="cBtn">Entrar</button>
       <div class="authLinks">

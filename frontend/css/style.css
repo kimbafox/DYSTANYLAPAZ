@@ -2021,7 +2021,7 @@ body::before{
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  transition: opacity 0.85s ease, transform 0.85s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 .authAnim__slide--login{
@@ -2054,7 +2054,7 @@ body::before{
   inset: -10px;
   background-size: cover;
   background-position: center;
-  filter: blur(4px);
+  filter: blur(2px);
 }
 
 .authAnim__bg--login{
@@ -2098,7 +2098,7 @@ body::before{
   position: absolute;
   inset: 0;
   overflow-y: auto;
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .authAnim__form--login{
