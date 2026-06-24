@@ -42,9 +42,16 @@ function renderActiveWorkspaceSection(sectionName = getActiveWorkspaceSection())
 
   if (sectionName === "propiedades") {
     renderPropertyManager();
-    if (state.map) {
-      window.setTimeout(() => state.map.invalidateSize(), 180);
-    }
+    // Esperar a que el DOM se actualice, luego reinicializar el mapa
+    window.setTimeout(() => {
+      if (state.map) {
+        state.map.invalidateSize();
+        syncMarkers();
+      } else {
+        initMap();
+        syncMarkers();
+      }
+    }, 50);
     return;
   }
 

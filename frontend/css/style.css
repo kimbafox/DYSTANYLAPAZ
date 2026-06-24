@@ -1298,6 +1298,13 @@ body::before{
   outline-offset: -3px;
 }
 
+#propertyManager .map,
+.propertyManager .map{
+  min-height: 500px;
+  height: 500px;
+  margin-top: 18px;
+}
+
 .map{
   width: 100%;
   height: 100%;
