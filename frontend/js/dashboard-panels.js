@@ -168,6 +168,7 @@ function renderPropertyManager(){
           <input id="propertyZone" type="text" placeholder="Zona" required>
           <input id="propertyPrice" type="number" min="1" placeholder="Precio en bolivianos" required>
           <div>
+            <label class="helperText helperText--neutral" for="propertyImages">Subir imágenes del terreno/casa (máx. 6)</label>
             <input id="propertyImages" type="file" accept="image/*" multiple required>
             <div id="propertyImagesPreview" class="imagesPreview" aria-live="polite"></div>
           </div>
@@ -180,7 +181,7 @@ function renderPropertyManager(){
         <p class="helperText helperText--neutral">La categoría de valor se calcula automáticamente según el precio ingresado.</p>
         <textarea id="propertyDesc" placeholder="Descripción" required></textarea>
         <p id="propertyFeedback" class="feedback" hidden></p>
-        <button type="submit">Publicar propiedad</button>
+        <button type="submit" class="cta">Publicar propiedad ahora</button>
       </form>
 
       <div class="portalPanel__head">
@@ -399,7 +400,10 @@ function resizeImageFile(file, maxWidth = 1200, quality = 0.75){
 async function handlePropertySubmit(event){
   event.preventDefault();
 
-  const button = event.currentTarget.querySelector("button[type='submit']");
+  const form = event?.currentTarget instanceof HTMLFormElement
+    ? event.currentTarget
+    : document.getElementById("propertyForm");
+  const button = form?.querySelector("button[type='submit']");
   const coords = Array.isArray(state.draftCoords) && state.draftCoords.length === 2
     ? state.draftCoords.map((value) => Number(value))
     : [];
@@ -421,7 +425,10 @@ async function handlePropertySubmit(event){
 
   payload.category = inferPropertyCategory(payload.priceBOB);
 
-  button.disabled = true;
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Publicando...";
+  }
   setPropertyFeedback("");
 
   // Procesar imágenes seleccionadas (si las hay): redimensionar y convertir a data URLs
@@ -455,15 +462,26 @@ async function handlePropertySubmit(event){
 
   try {
     await createProperty(payload);
-    event.currentTarget.reset();
+
+    if (form && typeof form.reset === "function") {
+      form.reset();
+    }
+    state.selectedPropertyImages = [];
+    const preview = document.getElementById("propertyImagesPreview");
+    if (preview) preview.innerHTML = "";
+
     clearDraftLocation();
-    setPropertyFeedback("Propiedad publicada correctamente.", "success");
-    await loadProperties();
-    renderPropertyManager();
-    renderCards();
+    setPropertyFeedback("Propiedad publicada correctamente. Recargando la página...", "success");
+    window.setTimeout(() => {
+      window.location.reload();
+    }, 650);
+    return;
   } catch (error) {
     setPropertyFeedback(error.message || "No se pudo publicar la propiedad.");
   } finally {
-    button.disabled = false;
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Publicar propiedad ahora";
+    }
   }
 }
