@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynasty87 — Registro</title>
+<link rel="icon" href="./assets/LOGO.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body class="authPage">
+
+<main class="authShell">
+
+<section class="authVisual authVisual--register">
+<div class="authVisual__overlay">
+<p class="authVisual__eyebrow">Registro</p>
+<h1 class="authVisual__title">Crea tu cuenta y empieza a publicar tus inmuebles.</h1>
+<p class="authVisual__text">Registra tus datos, activa tu rol y entra al panel con una interfaz más clara y directa.</p>
+<div class="authVisual__metrics">
+<div class="authMetric"><strong>1 perfil</strong><span>Control centralizado</span></div>
+<div class="authMetric"><strong>2 roles</strong><span>Usuario o vendedor</span></div>
+</div>
+</div>
+</section>
+
+<section class="authBox authBox--split">
+
+<h2>Crear cuenta</h2>
+
+<p class="authIntro">Registra tus datos personales para entrar al sistema sin configuraciones extra.</p>
+
+<p class="authKicker">Completa tus datos una sola vez para usar todo el sistema.</p>
+
+<p id="authFeedback" class="feedback" hidden></p>
+
+<div class="authGrid">
+<input id="nombre" type="text" placeholder="Nombre" autocomplete="given-name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" oninput="this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,'')" required>
+<input id="apellido" type="text" placeholder="Apellido" autocomplete="family-name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" oninput="this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,'')" required>
+<input id="ci" type="text" placeholder="CI" autocomplete="off" pattern="[A-Za-z0-9-]{5,20}" maxlength="20" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')" required>
+<input id="telefono" type="tel" inputmode="numeric" placeholder="Teléfono" autocomplete="tel" pattern="[0-9]{7,8}" maxlength="8" oninput="this.value=this.value.replace(/\D/g,'').slice(0,8)" required>
+<input id="fechaNacimiento" type="date" required>
+<input id="correo" type="email" inputmode="email" placeholder="Correo Gmail o Hotmail" autocomplete="email" required>
+</div>
+
+<textarea id="direccion" placeholder="Dirección" minlength="5" required></textarea>
+
+<input id="password" type="password" placeholder="Contraseña" minlength="6" autocomplete="new-password" required>
+
+<button onclick="register()">Registrarse</button>
+
+<div class="authMetaStrip">
+<span>Perfil completo</span>
+<span>Ingreso simple</span>
+<span>Contacto directo</span>
+</div>
+
+<div class="authLinks">
+<a href="login.html">Volver al login</a>
+</div>
+
+</section>
+
+</main>
+
+<script src="./js/auth.js"></script>
+
+</body>
+</html>

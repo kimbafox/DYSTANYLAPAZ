@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Usuario — Dynasty87</title>
+<link rel="icon" href="../assets/LOGO.png" type="image/png">
+<link rel="stylesheet" href="../css/style.css">
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+</head>
+<body class="authPage">
+<main class="docsDashboard docsDashboard--workspace" data-allowed-roles="usuario,vendedor,admin" data-default-section="perfil" data-guard-message="Tu sesión no tiene permisos para cargar este panel HTML.">
+<aside class="workspaceSidebar">
+<a class="backLink" href="../index.html">Volver al panel principal</a>
+
+<div class="workspaceSidebar__hero">
+<p class="docsEyebrow">Panel HTML</p>
+<h1>Usuario</h1>
+<p class="authIntro">Navega por el panel desde un solo menú y abre solo la sección que necesites.</p>
+<div id="sessionSummary" class="roleBadgeRow"></div>
+</div>
+
+<nav class="workspaceNav" aria-label="Secciones del panel de usuario">
+<button class="workspaceNav__item is-active" type="button" data-section-target="perfil">Mi perfil</button>
+<button class="workspaceNav__item" type="button" data-section-target="directorio">Directorio</button>
+<button class="workspaceNav__item" type="button" data-section-target="propiedades">Mis propiedades</button>
+<button class="workspaceNav__item" type="button" data-section-target="interesados">Interesados</button>
+<button class="workspaceNav__item" type="button" data-section-target="mapa">Mapa</button>
+</nav>
+
+<div class="workspaceSidebar__footer">
+<a class="cta docsHero__cta" href="../index.html">Ir al portal</a>
+<p id="roleGuardMessage" class="feedback" hidden></p>
+</div>
+</aside>
+
+<section class="workspaceContent">
+<article class="portalPanel dashboardSection is-active" data-section-panel="perfil">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Mi perfil</h2>
+<p class="portalPanel__hint">Resumen de tu cuenta y datos principales.</p>
+</div>
+<div id="profileContent" class="profileContent"></div>
+</article>
+
+<article class="portalPanel dashboardSection" data-section-panel="directorio">
+<div class="portalPanel__head">
+<h2 id="profilesTitle" class="panelTitle">Perfiles registrados</h2>
+<p id="profilesHint" class="portalPanel__hint">Directorio del sistema</p>
+</div>
+<div id="profilesDirectory" class="profilesDirectory"></div>
+</article>
+
+<article class="portalPanel dashboardSection" data-section-panel="propiedades">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Mis propiedades</h2>
+<p class="portalPanel__hint">Publica, administra y marca ubicación desde un solo lugar.</p>
+</div>
+<div id="propertyManager" class="propertyManager"></div>
+</article>
+
+<article class="portalPanel dashboardSection" data-section-panel="interesados">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Bandeja de interesados</h2>
+<p class="portalPanel__hint">Consulta quién quiere contactarte.</p>
+</div>
+<div id="notificationsInbox" class="profilesDirectory"></div>
+</article>
+
+<article class="portalPanel dashboardSection dashboardSection--map" data-section-panel="mapa">
+<div class="portalPanel__head">
+<h2 class="panelTitle">Mapa de venta</h2>
+<p class="portalPanel__hint">Selecciona y revisa ubicaciones desde el mapa.</p>
+</div>
+<div id="map" class="map"></div>
+</article>
+</section>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/docs-workspace.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/dashboard-panels.js"></script>
+</body>
+</html>

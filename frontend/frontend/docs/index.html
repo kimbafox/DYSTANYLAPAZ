@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paneles y Documentación — Dynasty87</title>
+<link rel="icon" href="../assets/LOGO.png" type="image/png">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="authPage">
+<main class="authBox docsContent docsDashboard">
+<a class="backLink" href="../index.html">Volver al catálogo principal</a>
+<p id="roleGuardMessage" class="feedback" hidden></p>
+
+<section class="docsHero">
+<div>
+<p class="docsEyebrow">Centro de paneles</p>
+<h1>Documentación y accesos</h1>
+<p class="authIntro">Esta página reúne los paneles HTML del prototipo para usuario, vendedor y administrador.</p>
+<div id="sessionSummary" class="roleBadgeRow"></div>
+</div>
+<a class="cta docsHero__cta" href="../index.html">Ir al catálogo</a>
+</section>
+
+<section class="docsQuickGrid">
+<article class="docFeatureCard">
+<h2>Panel Admin</h2>
+<p class="portalPanel__hint">Control operativo de usuarios, propiedades y revisión global.</p>
+<a class="backLink" href="./admin.html">Abrir panel admin</a>
+</article>
+
+<article class="docFeatureCard">
+<h2>Panel Usuario</h2>
+<p class="portalPanel__hint">Perfil personal y directorio de usuarios registrados.</p>
+<a class="backLink" href="./usuario.html">Abrir panel usuario</a>
+</article>
+
+<article class="docFeatureCard">
+<h2>Panel Vendedor</h2>
+<p class="portalPanel__hint">Publicación, mapa de ubicación y gestión de propiedades.</p>
+<a class="backLink" href="./vendedor.html">Abrir panel vendedor</a>
+</article>
+
+<article class="docFeatureCard">
+<h2>Arquitectura</h2>
+<p class="portalPanel__hint">Referencia del backend original y su estructura modular.</p>
+<a class="backLink" href="./backend.html">Abrir referencia técnica</a>
+</article>
+</section>
+
+<section class="docsMiniGrid">
+<article class="docsMiniItem">
+<strong>Guía rápida</strong>
+<span>Usa el catálogo principal para explorar propiedades, filtrar por precio y buscar por zona.</span>
+</article>
+<article class="docsMiniItem">
+<strong>Contacto directo</strong>
+<span>Desde la vista de propiedades puedes abrir detalles, ver fotos y enviar mensaje al propietario.</span>
+</article>
+<article class="docsMiniItem">
+<strong>Gestión por rol</strong>
+<span>Admin, vendedor y usuario tienen paneles separados para tareas específicas y seguimiento.</span>
+</article>
+<article class="docsMiniItem">
+<strong>Próximo paso</strong>
+<span>Revisa los paneles y luego prueba el flujo completo desde la página principal.</span>
+</article>
+</section>
+
+<section class="docFeatureCard">
+<h2>Qué puedes hacer aquí</h2>
+<ul class="docChecklist">
+<li>Ver el resumen de tu sesión y tu rol actual.</li>
+<li>Entrar a los paneles de administración, usuario y vendedor.</li>
+<li>Consultar la arquitectura técnica del backend para mantenimiento o mejoras.</li>
+<li>Continuar con el flujo principal del portal inmobiliario sin perder el contexto.</li>
+</ul>
+</section>
+</main>
+
+<script src="../js/auth.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+	const roleGuardMessage = document.getElementById("roleGuardMessage");
+	const sessionSummary = document.getElementById("sessionSummary");
+
+	try {
+		const user = await requireAuth();
+		if (!user) return;
+
+		sessionSummary.innerHTML = `
+			<span class="rolePill">${user.nombre} ${user.apellido}</span>
+			<span class="rolePill">${user.correo}</span>
+			<span class="rolePill">${(user.roles || []).map((role) => role === "admin" ? "Administrador" : role === "vendedor" ? "Vendedor" : "Usuario").join(" / ")}</span>
+		`;
+	} catch (error) {
+		roleGuardMessage.hidden = false;
+		roleGuardMessage.textContent = error.message || "No se pudo validar la sesión.";
+		roleGuardMessage.className = "feedback feedback--error";
+	}
+});
+</script>
+</body>
+</html>
