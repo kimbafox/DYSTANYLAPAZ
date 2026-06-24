@@ -169,7 +169,8 @@ function renderPropertyManager(){
           <input id="propertyPrice" type="number" min="1" placeholder="Precio en bolivianos" required>
           <div>
             <label class="helperText helperText--neutral" for="propertyImages">Subir imágenes del terreno/casa (máx. 6)</label>
-            <input id="propertyImages" type="file" accept="image/*" multiple required>
+            <input id="propertyImages" class="propertyFileInput" type="file" accept="image/*" multiple required>
+            <p class="helperText helperText--neutral">Formato recomendado: JPG o PNG.</p>
             <div id="propertyImagesPreview" class="imagesPreview" aria-live="polite"></div>
           </div>
         </div>
