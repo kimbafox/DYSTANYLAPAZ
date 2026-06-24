@@ -42,8 +42,6 @@ function renderActiveWorkspaceSection(sectionName = getActiveWorkspaceSection())
 
   if (sectionName === "propiedades") {
     renderPropertyManager();
-    initMap();
-    syncMarkers();
     if (state.map) {
       window.setTimeout(() => state.map.invalidateSize(), 180);
     }
@@ -53,14 +51,6 @@ function renderActiveWorkspaceSection(sectionName = getActiveWorkspaceSection())
   if (sectionName === "interesados") {
     renderNotifications();
     return;
-  }
-
-  if (sectionName === "mapa") {
-    initMap();
-    syncMarkers();
-    if (state.map) {
-      window.setTimeout(() => state.map.invalidateSize(), 180);
-    }
   }
 }
 

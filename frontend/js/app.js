@@ -690,6 +690,8 @@ async function loadDashboardData(){
   renderSessionSummary();
 
   if (isWorkspaceDashboard()) {
+    initMap();
+    syncMarkers();
     renderActiveWorkspaceSection();
     return;
   }
