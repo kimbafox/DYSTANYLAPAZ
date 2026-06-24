@@ -285,6 +285,17 @@ function formatDateTime(value){
 function profileMarkup(user, options = {}){
   const profileActions = buildProfileActions(user);
   const initials = `${String(user.nombre || "").charAt(0)}${String(user.apellido || "").charAt(0)}`.toUpperCase();
+  const publishedProperties = state.properties.filter((property) => property.ownerId === user.id);
+  const publicationsMarkup = publishedProperties.length
+    ? publishedProperties
+      .map((property) => `
+        <li class="profilePublications__item">
+          <span class="profilePublications__title">${escapeHtml(property.title)}</span>
+          <span class="profilePublications__meta">${escapeHtml(property.zone)} · ${property.status === "vendida" ? "Vendida" : "Disponible"} · ${moneyBOB(property.priceBOB)}</span>
+        </li>
+      `)
+      .join("")
+    : '<li class="profilePublications__item">Este usuario todavía no tiene propiedades publicadas.</li>';
 
   return `
     <article class="profileCard profileCard--enhanced">
@@ -299,6 +310,7 @@ function profileMarkup(user, options = {}){
           ${state.currentUser && state.currentUser.id === user.id
             ? `<button class="cta" onclick="window.alert('Editar perfil - pendiente')">Editar perfil</button>`
             : `<button class="cta" data-view-user="${user.id}">Ver perfil</button>`}
+          <button class="ghostAction" type="button" data-toggle-publications="${user.id}" aria-expanded="false">Ver publicaciones</button>
           ${options.canDelete ? `<button class="dangerBtn" data-delete-user="${user.id}">Eliminar</button>` : ``}
         </div>
       </div>
@@ -313,6 +325,13 @@ function profileMarkup(user, options = {}){
       <div class="profileSummaryRow">
         ${profileActions.summaryMarkup}
         ${profileActions.contactMarkup}
+      </div>
+
+      <div class="profilePublications" data-publications-panel="${user.id}" hidden>
+        <p class="profilePublications__heading">Propiedades publicadas (${publishedProperties.length})</p>
+        <ul class="profilePublications__list">
+          ${publicationsMarkup}
+        </ul>
       </div>
     </article>
   `;

@@ -989,6 +989,19 @@ body::before{
   color: rgba(0,0,0,0.62);
 }
 
+.profilesSearch{
+  padding: 0 20px 12px;
+}
+
+.profilesSearch__input{
+  width: 100%;
+  border: var(--stroke);
+  border-radius: 12px;
+  padding: 11px 12px;
+  font: inherit;
+  background: rgba(255,255,255,0.96);
+}
+
 /* Previews de imágenes seleccionadas en el formulario de propiedades */
 .imagesPreview{
   display: flex;
@@ -1053,6 +1066,48 @@ body::before{
 .profileLine--muted{
   color: rgba(0,0,0,0.6);
   margin-top: 6px;
+}
+
+.profilePublications{
+  margin-top: 12px;
+  border: 1px solid rgba(30,127,79,0.16);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,249,246,0.96));
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.profilePublications__heading{
+  margin: 0 0 8px;
+  font-weight: 800;
+  font-size: 13px;
+  color: rgba(0,0,0,0.72);
+}
+
+.profilePublications__list{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.profilePublications__item{
+  border: 1px solid rgba(30,127,79,0.1);
+  background: rgba(30,127,79,0.04);
+  border-radius: 10px;
+  padding: 9px 10px;
+}
+
+.profilePublications__title{
+  display: block;
+  font-weight: 800;
+}
+
+.profilePublications__meta{
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(0,0,0,0.65);
 }
 
 .ghostAction--disabled{

@@ -1,6 +1,105 @@
-function renderNotifications(){
+const INTERESTS_STORAGE_EVENT_KEY = "dynapaz_interests";
+let profilesSearchQuery = "";
+
+function matchesProfilesSearch(user, query){
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+  if (!normalizedQuery) return true;
+
+  const searchableText = [
+    user?.nombre,
+    user?.apellido,
+    user?.correo,
+    user?.telefono,
+    user?.ci,
+    user?.direccion,
+    ...(Array.isArray(user?.roles) ? user.roles : []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return searchableText.includes(normalizedQuery);
+}
+
+function ensureProfilesSearchBar(){
+  const profilesDirectory = document.getElementById("profilesDirectory");
+  if (!profilesDirectory) return;
+
+  let searchWrap = document.getElementById("profilesSearchWrap");
+  if (!searchWrap) {
+    searchWrap = document.createElement("div");
+    searchWrap.id = "profilesSearchWrap";
+    searchWrap.className = "profilesSearch";
+    searchWrap.innerHTML = `
+      <input
+        id="profilesSearchInput"
+        class="profilesSearch__input"
+        type="text"
+        placeholder="Buscar por nombre, correo, rol, CI o dirección..."
+      >
+      <p id="profilesSearchMeta" class="helperText helperText--neutral"></p>
+    `;
+
+    profilesDirectory.parentElement?.insertBefore(searchWrap, profilesDirectory);
+  }
+
+  const input = document.getElementById("profilesSearchInput");
+  if (!input) return;
+
+  input.value = profilesSearchQuery;
+
+  if (input.dataset.boundSearchInput !== "1") {
+    input.dataset.boundSearchInput = "1";
+    input.addEventListener("input", () => {
+      profilesSearchQuery = input.value;
+      renderProfiles();
+    });
+  }
+}
+
+function bindProfilePublicationToggles(scopeElement = document){
+  scopeElement.querySelectorAll("[data-toggle-publications]").forEach((button) => {
+    if (button.dataset.boundPublicationsToggle === "1") return;
+
+    button.dataset.boundPublicationsToggle = "1";
+    button.addEventListener("click", () => {
+      const userId = button.getAttribute("data-toggle-publications");
+      if (!userId) return;
+
+      const panel = scopeElement.querySelector(`[data-publications-panel="${userId}"]`)
+        || document.querySelector(`[data-publications-panel="${userId}"]`);
+      if (!panel) return;
+
+      const isOpen = !panel.hidden;
+      panel.hidden = isOpen;
+      button.setAttribute("aria-expanded", String(!isOpen));
+      button.textContent = isOpen ? "Ver publicaciones" : "Ocultar publicaciones";
+    });
+  });
+}
+
+async function renderNotifications(options = {}){
+  const { showLoading = false } = options;
   const container = document.getElementById("notificationsInbox");
   const counter = document.getElementById("notificationsCount");
+
+  if (container && showLoading) {
+    container.innerHTML = '<div class="emptyState">Actualizando interesados...</div>';
+  }
+
+  try {
+    state.notifications = await getInterests();
+    renderSessionSummary();
+  } catch (error) {
+    if (container) {
+      container.innerHTML = '<div class="emptyState">No se pudo actualizar la bandeja de interesados.</div>';
+    }
+    if (counter) {
+      counter.textContent = "0";
+    }
+    return;
+  }
+
   if (counter) {
     counter.textContent = String(state.notifications.length);
   }
@@ -56,10 +155,24 @@ function renderActiveWorkspaceSection(sectionName = getActiveWorkspaceSection())
   }
 
   if (sectionName === "interesados") {
-    renderNotifications();
+    void renderNotifications({ showLoading: true });
     return;
   }
 }
+
+window.addEventListener("storage", (event) => {
+  if (event.key !== INTERESTS_STORAGE_EVENT_KEY) return;
+  if (getActiveWorkspaceSection() !== "interesados") return;
+
+  void renderNotifications({ showLoading: false });
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  if (getActiveWorkspaceSection() !== "interesados") return;
+
+  void renderNotifications({ showLoading: false });
+});
 
 window.__dynapazDashboard = {
   activateSection(sectionName){
@@ -87,6 +200,7 @@ function renderProfiles(){
 
   if (profileContent) {
     profileContent.innerHTML = profileMarkup(state.currentUser);
+    bindProfilePublicationToggles(profileContent);
   }
 
   const isAdmin = tieneRol(state.currentUser, "admin");
@@ -104,9 +218,27 @@ function renderProfiles(){
 
   if (!profilesDirectory) return;
 
-  profilesDirectory.innerHTML = rankedUsers
+  ensureProfilesSearchBar();
+
+  const filteredUsers = rankedUsers.filter((user) => matchesProfilesSearch(user, profilesSearchQuery));
+  const profilesSearchMeta = document.getElementById("profilesSearchMeta");
+  if (profilesSearchMeta) {
+    if (!profilesSearchQuery.trim()) {
+      profilesSearchMeta.textContent = `${rankedUsers.length} perfiles disponibles.`;
+    } else {
+      profilesSearchMeta.textContent = `${filteredUsers.length} resultados para "${profilesSearchQuery.trim()}".`;
+    }
+  }
+
+  if (!filteredUsers.length) {
+    profilesDirectory.innerHTML = '<div class="emptyState">No se encontraron perfiles con ese criterio.</div>';
+    return;
+  }
+
+  profilesDirectory.innerHTML = filteredUsers
     .map((user) => profileMarkup(user, { canDelete: isAdmin && user.id !== state.currentUser.id }))
     .join("");
+  bindProfilePublicationToggles(profilesDirectory);
 
   // Attach handlers for "Ver perfil" buttons to load other users into the profile panel
   profilesDirectory.querySelectorAll('[data-view-user]').forEach((btn) => {
@@ -118,6 +250,7 @@ function renderProfiles(){
       const profileContent = document.getElementById('profileContent');
       if (profileContent) {
         profileContent.innerHTML = profileMarkup(user);
+        bindProfilePublicationToggles(profileContent);
         // Scroll to profile section for visibility
         profileContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }

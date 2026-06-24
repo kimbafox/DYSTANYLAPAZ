@@ -516,8 +516,8 @@ async function getInterests(){
 	const currentUser = await getCurrentUser();
 	if (!currentUser) return [];
 
-	const users = getUsersDb();
-	const properties = getPropertiesDb();
+	const users = await getUsers();
+	const properties = getPropertiesDb().map((property) => enrichProperty(property, users));
 	return getInterestsDb()
 		.filter((interest) => interest.ownerId === currentUser.id)
 		.map((interest) => enrichInterest(interest, users, properties))
