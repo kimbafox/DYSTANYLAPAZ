@@ -42,6 +42,11 @@ function renderActiveWorkspaceSection(sectionName = getActiveWorkspaceSection())
 
   if (sectionName === "propiedades") {
     renderPropertyManager();
+    initMap();
+    syncMarkers();
+    if (state.map) {
+      window.setTimeout(() => state.map.invalidateSize(), 180);
+    }
     return;
   }
 
@@ -180,6 +185,12 @@ function renderPropertyManager(){
         <p id="propertyFeedback" class="feedback" hidden></p>
         <button type="submit">Publicar propiedad</button>
       </form>
+
+      <div class="portalPanel__head">
+        <h3 class="subTitle">Mapa de publicación</h3>
+        <p class="portalPanel__hint">Debajo del formulario puedes fijar la ubicación exacta de la casa.</p>
+      </div>
+      <div id="map" class="map"></div>
     ` : `
       <div class="emptyState">Tu cuenta solo puede revisar propiedades visibles.</div>
     `}

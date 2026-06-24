@@ -713,9 +713,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initFilters();
     initSearch();
 
-    if (!isWorkspaceDashboard()) {
-      initMap();
-    }
+    initMap();
 
     await loadDashboardData();
   } catch (error) {
